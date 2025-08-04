@@ -27,7 +27,7 @@ VarName = "{var_name}";
 Description = "{description}";
 Topic = "{topic}";
 Sub_Topic = "{sub_topic}";
-PopulationDatasource = "Youth";
+PopulationDatasource = "{population_source}";
 Note1 = "";
 Note2 = "";
 Note3 = "";
@@ -45,20 +45,25 @@ run;
 # --- Topic/Subtopic Dropdown Options ---
 TOPIC_OPTIONS = {
     "Children and Youth": 5,
+    "Community Characteristics": 6,
+    "Diseases and Conditions": 1,
     "Healthy Living": 4,
+    "Health Care Access and Use": 2,
+    "Living and Environmental Conditions": 7,
+    "Mental Health": 3,
     "Sleep": 33,
     "Smoking": 7,
     "Vaccinations": 29,
-    "Violence": 1,
-    "Community Characteristics": 6,
-    "Living and Environmental Conditions": 7,
-    "Mental Health": 3,
-    "Diseases and Conditions": 1,
-    "Health Care Access and Use": 2
+    "Violence": 1
 }
 
 SUBTOPIC_OPTIONS = {
+    "Chronic Disease": 24,
+    "Day Care and School": 34,
     "Drug and Alcohol Use": 10,
+    "Economic Factors": 31,
+    "Health Care Use": 17,
+    "Housing": 14,
     "Household and Neighborhood": 16,
     "Mental Health": 3,
     "Mental Health Conditions": 20,
@@ -67,35 +72,40 @@ SUBTOPIC_OPTIONS = {
     "Physical Activity": 35,
     "Population Characteristics": 11,
     "Safety": 4,
+    "Screening": 19,
     "Sexual Behavior": 30,
     "Smoking": 7,
-    "Violence": 1,
-    "Day Care and School": 34,
-    "Economic Factors": 31,
     "Social Factors": 13,
-    "Housing": 14,
-    "Chronic Disease": 24,
-    "Health Care Use": 17,
-    "Screening": 19,
-    "Vaccinations": 29
+    "Vaccinations": 29,
+    "Violence": 1
 }
 
-# Dataset full names
 DATASET_NAMES = {
-    "YRBS": "NYC Youth Risk Behavior Survey",
-    "CHS": "NYC Community Health Survey"
+    "CHS": "NYC Community Health Survey",
+    "YRBS": "NYC Youth Risk Behavior Survey"
 }
 
 # --- GUI Setup ---
 root = tk.Tk()
 root.title("SAS Code Generator")
 
+# Set default style
+style = ttk.Style()
+style.theme_use('clam')
+style.configure("TLabel", font=("Segoe UI", 10), padding=5)
+style.configure("TButton", font=("Segoe UI", 10, "bold"), padding=5)
+style.configure("TEntry", padding=5)
+style.configure("TCombobox", padding=5)
+
+main_frame = ttk.Frame(root, padding="15")
+main_frame.grid(row=0, column=0)
+
 fields = {}
 
 # --- Input Fields ---
 def add_label_entry(row, label, varname):
-    tk.Label(root, text=label).grid(row=row, column=0, sticky="e")
-    entry = tk.Entry(root, width=40)
+    ttk.Label(main_frame, text=label).grid(row=row, column=0, sticky="e")
+    entry = ttk.Entry(main_frame, width=40)
     entry.grid(row=row, column=1, pady=2, sticky="w")
     fields[varname] = entry
 
@@ -103,37 +113,37 @@ add_label_entry(0, "Variable Code:", "var_code")
 add_label_entry(1, "Variable Name:", "var_name")
 add_label_entry(2, "Description:", "description")
 
-# --- Topic dropdown ---
-tk.Label(root, text="Topic:").grid(row=3, column=0, sticky="e")
+# --- Topic Dropdown ---
+ttk.Label(main_frame, text="Topic:").grid(row=3, column=0, sticky="e")
 topic_var = tk.StringVar()
-topic_dropdown = ttk.Combobox(root, textvariable=topic_var, values=list(TOPIC_OPTIONS.keys()))
+topic_dropdown = ttk.Combobox(main_frame, textvariable=topic_var, values=sorted(TOPIC_OPTIONS.keys()), width=38)
 topic_dropdown.grid(row=3, column=1, sticky="w")
 fields['topic'] = topic_dropdown
 
-# --- Sub-Topic dropdown ---
-tk.Label(root, text="Sub-Topic:").grid(row=4, column=0, sticky="e")
+# --- Sub-Topic Dropdown ---
+ttk.Label(main_frame, text="Sub-Topic:").grid(row=4, column=0, sticky="e")
 subtopic_var = tk.StringVar()
-subtopic_dropdown = ttk.Combobox(root, textvariable=subtopic_var, values=list(SUBTOPIC_OPTIONS.keys()))
+subtopic_dropdown = ttk.Combobox(main_frame, textvariable=subtopic_var, values=sorted(SUBTOPIC_OPTIONS.keys()), width=38)
 subtopic_dropdown.grid(row=4, column=1, sticky="w")
 fields['sub_topic'] = subtopic_dropdown
 
-# --- VarType dropdown ---
-tk.Label(root, text="Variable Type:").grid(row=5, column=0, sticky="e")
+# --- VarType Dropdown ---
+ttk.Label(main_frame, text="Variable Type:").grid(row=5, column=0, sticky="e")
 vartype_var = tk.StringVar()
-vartype_dropdown = ttk.Combobox(root, textvariable=vartype_var, values=["Indicator", "Demographic"])
+vartype_dropdown = ttk.Combobox(main_frame, textvariable=vartype_var, values=sorted(["Indicator", "Demographic"]), width=38)
 vartype_dropdown.grid(row=5, column=1, sticky="w")
 fields['var_type'] = vartype_dropdown
 
-# --- Dataset dropdown ---
-tk.Label(root, text="Dataset:").grid(row=6, column=0, sticky="e")
+# --- Dataset Dropdown ---
+ttk.Label(main_frame, text="Dataset:").grid(row=6, column=0, sticky="e")
 dataset_var = tk.StringVar()
-dataset_dropdown = ttk.Combobox(root, textvariable=dataset_var, values=["YRBS", "CHS"])
+dataset_dropdown = ttk.Combobox(main_frame, textvariable=dataset_var, values=sorted(DATASET_NAMES.keys()), width=38)
 dataset_dropdown.grid(row=6, column=1, sticky="w")
 fields['dataset'] = dataset_dropdown
 
 # --- Output Box ---
-output_box = tk.Text(root, width=90, height=25, wrap="word")
-output_box.grid(row=8, column=0, columnspan=2, padx=10, pady=10)
+output_box = tk.Text(root, width=100, height=25, wrap="word", font=("Courier New", 9))
+output_box.grid(row=1, column=0, padx=15, pady=10)
 
 # --- Generate SAS Code ---
 def generate_sas():
@@ -144,12 +154,19 @@ def generate_sas():
             return
 
         dataset_full_name = DATASET_NAMES[selected_dataset]
+        population_source = "Adult" if selected_dataset == "CHS" else "Youth"
 
-        num_levels = int(simpledialog.askstring("Input", "How many levels for this variable (last # of variable code)?", parent=root))
+        num_levels_str = simpledialog.askstring("Input", "How many levels for this variable (last # of variable code)?", parent=root)
+        if not num_levels_str or not num_levels_str.isdigit():
+            messagebox.showerror("Error", "Please enter a valid number of levels.")
+            return
+        num_levels = int(num_levels_str)
+
         var_values = []
         for i in range(1, num_levels + 1):
             val = simpledialog.askstring("Var Value", f"Enter Variable Value #{i}:", parent=root)
-            var_values.append(val)
+            if val:
+                var_values.append(val)
 
         output_box.delete("1.0", tk.END)
 
@@ -166,14 +183,15 @@ def generate_sas():
                 var_name=fields['var_name'].get(),
                 description=fields['description'].get(),
                 dataset=selected_dataset,
-                dataset_name=dataset_full_name
+                dataset_name=dataset_full_name,
+                population_source=population_source
             )
             output_box.insert(tk.END, sas_code + "\n")
 
     except Exception as e:
         messagebox.showerror("Error", str(e))
 
-# --- Button ---
-tk.Button(root, text="Generate SAS Code", command=generate_sas).grid(row=7, column=0, columnspan=2, pady=10)
+# --- Generate Button ---
+ttk.Button(main_frame, text="Generate SAS Code", command=generate_sas).grid(row=7, column=0, columnspan=2, pady=15)
 
 root.mainloop()
