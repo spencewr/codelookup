@@ -45,6 +45,7 @@ def generate_code():
     varvalue = varvalue_entry.get()
     topic = topic_var.get()
     subtopic = subtopic_var.get()
+    description = description_var.get()
 
     topic_id = topic_map.get(topic, "")
     subtopic_id = subtopic_map.get(subtopic, "")
@@ -71,7 +72,7 @@ VarCode ="{varcode}" ;
 VarValue ="{varvalue}" ;
 VarType ="{vartype}" ;
 VarName ="{varname}" ;
-Description ="" ;
+Description ="{description}" ;
 Topic ="{topic}" ;
 Sub_Topic ="{subtopic}" ;
 PopulationDatasource ="Youth ";
@@ -108,17 +109,21 @@ Label(root, text="Variable Value (ex. Felt sad, Did not feel sad)").grid(row=2, 
 varvalue_entry = Entry(root, width=30)
 varvalue_entry.grid(row=2, column=1)
 
-Label(root, text="Variable Type").grid(row=3, column=0, sticky="e")
+Label(root, text="Description (ex. Students that felt sad or hopeless over past 30 days)").grid(row=3, column=0, sticky="e")
+description_entry = Entry(root, width=30)
+description_entry.grid(row=2, column=1)
+
+Label(root, text="Variable Type").grid(row=4, column=0, sticky="e")
 vartype_var = StringVar(root)
 vartype_var.set("Indicator")
 OptionMenu(root, vartype_var, "Indicator", "Demographic").grid(row=3, column=1, sticky="w")
 
-Label(root, text="Topic").grid(row=4, column=0, sticky="e")
+Label(root, text="Topic").grid(row=5, column=0, sticky="e")
 topic_var = StringVar(root)
 topic_var.set(next(iter(topic_map)))
 OptionMenu(root, topic_var, *topic_map).grid(row=4, column=1, sticky="w")
 
-Label(root, text="Subtopic").grid(row=5, column=0, sticky="e")
+Label(root, text="Subtopic").grid(row=6, column=0, sticky="e")
 subtopic_var = StringVar(root)
 subtopic_var.set(next(iter(subtopic_map)))
 OptionMenu(root, subtopic_var, *subtopic_map).grid(row=5, column=1, sticky="w")
