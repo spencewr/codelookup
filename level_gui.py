@@ -44,8 +44,17 @@ run;
 
 # --- Topic/Subtopic Dropdown Options ---
 TOPIC_OPTIONS = {
-    "Children and Youth": 1,
-    "Adults": 2
+    "Children and Youth": 5,
+    "Healthy Living": 4,
+    "Sleep": 33,
+    "Smoking": 7,
+    "Vaccinations": 29,
+    "Violence": 1,
+    "Community Characteristics": 6,
+    "Living and Environmental Conditions": 7,
+    "Mental Health": 3,
+    "Diseases and Conditions": 1,
+    "Health Care Access and Use": 2
 }
 
 SUBTOPIC_OPTIONS = {
