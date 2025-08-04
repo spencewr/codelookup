@@ -58,8 +58,26 @@ TOPIC_OPTIONS = {
 }
 
 SUBTOPIC_OPTIONS = {
-    "Mental Health": 10,
-    "Substance Use": 20
+    "Drug and Alcohol Use": 10,
+    "Household and Neighborhood": 16,
+    "Mental Health": 3,
+    "Mental Health Conditions": 20,
+    "Mental Health Counseling and Treatment": 27,
+    "Nutrition": 23,
+    "Physical Activity": 35,
+    "Population Characteristics": 11,
+    "Safety": 4,
+    "Sexual Behavior": 30,
+    "Smoking": 7,
+    "Violence": 1,
+    "Day Care and School": 34,
+    "Economic Factors": 31,
+    "Social Factors": 13,
+    "Housing": 14,
+    "Chronic Disease": 24,
+    "Health Care Use": 17,
+    "Screening": 19,
+    "Vaccinations": 29
 }
 
 # --- GUI Setup ---
