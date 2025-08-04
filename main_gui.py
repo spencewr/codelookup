@@ -96,19 +96,19 @@ root = Tk()
 root.title("SAS Code Generator")
 
 # Input rows
-Label(root, text="VarName").grid(row=0, column=0, sticky="e")
+Label(root, text="Variable Name (ex. Felt sad (last 30 days)").grid(row=0, column=0, sticky="e")
 varname_entry = Entry(root, width=30)
 varname_entry.grid(row=0, column=1)
 
-Label(root, text="VarCode").grid(row=1, column=0, sticky="e")
+Label(root, text="Variable Code (ex. sadsad4, boroug5)").grid(row=1, column=0, sticky="e")
 varcode_entry = Entry(root, width=30)
 varcode_entry.grid(row=1, column=1)
 
-Label(root, text="VarValue").grid(row=2, column=0, sticky="e")
+Label(root, text="Variable Value (ex. Felt sad, Did not feel sad").grid(row=2, column=0, sticky="e")
 varvalue_entry = Entry(root, width=30)
 varvalue_entry.grid(row=2, column=1)
 
-Label(root, text="VarType").grid(row=3, column=0, sticky="e")
+Label(root, text="Variable Type").grid(row=3, column=0, sticky="e")
 vartype_var = StringVar(root)
 vartype_var.set("Indicator")
 OptionMenu(root, vartype_var, "Indicator", "Demographic").grid(row=3, column=1, sticky="w")
