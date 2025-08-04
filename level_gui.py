@@ -36,7 +36,7 @@ MapTitlePrefix = "";
 MapTitleSuffix = "";
 MapInsert = "";
 VarComments = "";
-Tag = "{var_name})_YRBS";
+Tag = "{var_name}_YRBS";
 DefaultPopulationSource = "CHS";
 output;
 run;
