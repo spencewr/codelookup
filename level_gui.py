@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, simpledialog, messagebox
 
-# --- SAS Template ---
+# --- SAS template ---
 SAS_TEMPLATE = """
 /* {var_value} */
 data new_varxx;
@@ -93,11 +93,11 @@ def add_label_entry(row, label, varname):
     entry.grid(row=row, column=1, pady=2, sticky="w")
     fields[varname] = entry
 
-add_label_entry(0, "Var Code:", "var_code")
-add_label_entry(1, "Var Name:", "var_name")
+add_label_entry(0, "Variable Code:", "var_code")
+add_label_entry(1, "Variable Name:", "var_name")
 add_label_entry(2, "Description:", "description")
 
-# --- Dropdowns ---
+# --- dropdowns ---
 tk.Label(root, text="Topic:").grid(row=3, column=0, sticky="e")
 topic_var = tk.StringVar()
 topic_dropdown = ttk.Combobox(root, textvariable=topic_var, values=list(TOPIC_OPTIONS.keys()))
@@ -111,7 +111,7 @@ subtopic_dropdown.grid(row=4, column=1, sticky="w")
 fields['sub_topic'] = subtopic_dropdown
 
 # --- VarType Dropdown ---
-tk.Label(root, text="Var Type:").grid(row=5, column=0, sticky="e")
+tk.Label(root, text="Variable Type:").grid(row=5, column=0, sticky="e")
 vartype_var = tk.StringVar()
 vartype_dropdown = ttk.Combobox(root, textvariable=vartype_var, values=["Indicator", "Demographic"])
 vartype_dropdown.grid(row=5, column=1, sticky="w")
@@ -124,10 +124,10 @@ output_box.grid(row=7, column=0, columnspan=2, padx=10, pady=10)
 # --- Generate SAS Code ---
 def generate_sas():
     try:
-        num_levels = int(simpledialog.askstring("Input", "How many Var Values?", parent=root))
+        num_levels = int(simpledialog.askstring("Input", "How many levels for this variable (last # of variable code)?", parent=root))
         var_values = []
         for i in range(1, num_levels + 1):
-            val = simpledialog.askstring("Var Value", f"Enter Var Value #{i}:", parent=root)
+            val = simpledialog.askstring("Var Value", f"Enter Variable Value #{i}:", parent=root)
             var_values.append(val)
 
         # Clear the output box
