@@ -1,4 +1,4 @@
-from tkinter import Tk, Label, Entry, Button, StringVar, OptionMenu, Text, END
+stacfrom tkinter import Tk, Label, Entry, Button, StringVar, OptionMenu, Text, END
 
 # Define mappings
 topic_map = {
@@ -97,11 +97,11 @@ root = Tk()
 root.title("SAS Code Generator")
 
 # Input rows
-Label(root, text="Variable Name (ex. Felt sad (last 30 days))").grid(row=0, column=0, sticky="e")
+Label(root, text="Variable Name (ex. Ecstacy (ever))").grid(row=0, column=0, sticky="e")
 varname_entry = Entry(root, width=30)
 varname_entry.grid(row=0, column=1)
 
-Label(root, text="Variable Code (ex. sadsad4, boroug5)").grid(row=1, column=0, sticky="e")
+Label(root, text="Variable Code (ex. ecstac2)").grid(row=1, column=0, sticky="e")
 varcode_entry = Entry(root, width=30)
 varcode_entry.grid(row=1, column=1)
 
