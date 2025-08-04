@@ -111,28 +111,28 @@ varvalue_entry.grid(row=2, column=1)
 
 Label(root, text="Description (ex. Students that felt sad or hopeless over past 30 days)").grid(row=3, column=0, sticky="e")
 description_entry = Entry(root, width=30)
-description_entry.grid(row=2, column=1)
+description_entry.grid(row=3, column=1)
 
 Label(root, text="Variable Type").grid(row=4, column=0, sticky="e")
 vartype_var = StringVar(root)
 vartype_var.set("Indicator")
-OptionMenu(root, vartype_var, "Indicator", "Demographic").grid(row=3, column=1, sticky="w")
+OptionMenu(root, vartype_var, "Indicator", "Demographic").grid(row=4, column=1, sticky="w")
 
 Label(root, text="Topic").grid(row=5, column=0, sticky="e")
 topic_var = StringVar(root)
 topic_var.set(next(iter(topic_map)))
-OptionMenu(root, topic_var, *topic_map).grid(row=4, column=1, sticky="w")
+OptionMenu(root, topic_var, *topic_map).grid(row=5, column=1, sticky="w")
 
 Label(root, text="Subtopic").grid(row=6, column=0, sticky="e")
 subtopic_var = StringVar(root)
 subtopic_var.set(next(iter(subtopic_map)))
-OptionMenu(root, subtopic_var, *subtopic_map).grid(row=5, column=1, sticky="w")
+OptionMenu(root, subtopic_var, *subtopic_map).grid(row=6, column=1, sticky="w")
 
 # Generate button
-Button(root, text="Generate SAS Code", command=generate_code).grid(row=6, columnspan=2, pady=10)
+Button(root, text="Generate SAS Code", command=generate_code).grid(row=7, columnspan=2, pady=10)
 
 # Output SAS code area
 output_text = Text(root, height=25, width=90)
-output_text.grid(row=7, columnspan=2, padx=10, pady=10)
+output_text.grid(row=8, columnspan=2, padx=10, pady=10)
 
 root.mainloop()
