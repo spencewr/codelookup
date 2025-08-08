@@ -3,7 +3,6 @@ from ttkbootstrap.constants import *
 from tkinter import messagebox
 import tkinter.simpledialog as simpledialog
 
-# SAS Template
 SAS_TEMPLATE = """
 /* {var_value} */
 data new_varxx;
@@ -44,7 +43,6 @@ output;
 run;
 """
 
-# Topics with subtopics and IDs (simplified for brevity)
 TOPICS = {
     "Children and Youth": {
         "id": 5,
@@ -155,7 +153,6 @@ TOPICS = {
     },
 }
 
-# Survey dataset info with population and tag suffix
 SURVEYS = {
     "YRBS": {
         "full_name": "NYC Youth Risk Behavior Survey",
@@ -179,154 +176,88 @@ SURVEYS = {
     },
 }
 
-# Survey style info for button color only (used for dropdown bg and button)
-SURVEY_STYLES = {
-    "YRBS": {"btn_bootstyle": "danger-outline", "dropdown_bootstyle": "danger"},
-    "CHS": {"btn_bootstyle": "success-outline", "dropdown_bootstyle": "success"},
-    "HANES": {"btn_bootstyle": "warning-outline", "dropdown_bootstyle": "warning"},
-    "CCHS": {"btn_bootstyle": "info-outline", "dropdown_bootstyle": "info"},
-}
-
 
 class SASGeneratorApp(tb.Window):
     def __init__(self):
         super().__init__(title="SAS Code Generator", size=(900, 650))
 
-        # Variables
         self.current_survey_key = None
 
-        # Dataset Dropdown
-        self.label_dataset = tb.Label(self, text="Select Survey Dataset:")
-        self.label_dataset.pack(pady=(15, 3), anchor="w", padx=15)
+        tb.Label(self, text="Select Survey Dataset:").pack(pady=(15, 3), anchor="w", padx=15)
         self.dataset_var = tb.StringVar()
-        self.dataset_dropdown = tb.Combobox(
-            self, textvariable=self.dataset_var, bootstyle="info", state="readonly"
-        )
+        self.dataset_dropdown = tb.Combobox(self, textvariable=self.dataset_var, state="readonly")
         self.dataset_dropdown["values"] = sorted(SURVEYS.keys())
         self.dataset_dropdown.pack(fill="x", padx=15)
         self.dataset_dropdown.bind("<<ComboboxSelected>>", self.on_survey_change)
 
-        # Variable Code
-        self.label_var_code = tb.Label(self, text="Variable Code:")
-        self.label_var_code.pack(pady=(15, 3), anchor="w", padx=15)
+        tb.Label(self, text="Variable Code:").pack(pady=(15, 3), anchor="w", padx=15)
         self.var_code_entry = tb.Entry(self)
         self.var_code_entry.pack(fill="x", padx=15)
 
-        # Variable Name
-        self.label_var_name = tb.Label(self, text="Variable Name:")
-        self.label_var_name.pack(pady=(15, 3), anchor="w", padx=15)
+        tb.Label(self, text="Variable Name:").pack(pady=(15, 3), anchor="w", padx=15)
         self.var_name_entry = tb.Entry(self)
         self.var_name_entry.pack(fill="x", padx=15)
 
-        # Description
-        self.label_description = tb.Label(self, text="Description:")
-        self.label_description.pack(pady=(15, 3), anchor="w", padx=15)
+        tb.Label(self, text="Description:").pack(pady=(15, 3), anchor="w", padx=15)
         self.description_entry = tb.Entry(self)
         self.description_entry.pack(fill="x", padx=15)
 
-        # Variable Type Dropdown (before Topic)
-        self.label_var_type = tb.Label(self, text="Variable Type:")
-        self.label_var_type.pack(pady=(15, 3), anchor="w", padx=15)
+        tb.Label(self, text="Variable Type:").pack(pady=(15, 3), anchor="w", padx=15)
         self.var_type_var = tb.StringVar()
         self.var_type_dropdown = tb.Combobox(
-            self,
-            textvariable=self.var_type_var,
-            values=["Indicator", "Demographic"],
-            state="readonly",
-            bootstyle="secondary",
+            self, textvariable=self.var_type_var, values=["Indicator", "Demographic"], state="readonly"
         )
         self.var_type_dropdown.pack(fill="x", padx=15)
         self.var_type_dropdown.bind("<<ComboboxSelected>>", self.on_vartype_change)
 
-        # Topic Dropdown
-        self.label_topic = tb.Label(self, text="Topic:")
-        self.label_topic.pack(pady=(15, 3), anchor="w", padx=15)
+        tb.Label(self, text="Topic:").pack(pady=(15, 3), anchor="w", padx=15)
         self.topic_var = tb.StringVar()
         self.topic_dropdown = tb.Combobox(
-            self,
-            textvariable=self.topic_var,
-            values=sorted(TOPICS.keys()),
-            state="readonly",
-            bootstyle="secondary",
+            self, textvariable=self.topic_var, values=sorted(TOPICS.keys()), state="readonly"
         )
         self.topic_dropdown.pack(fill="x", padx=15)
         self.topic_dropdown.bind("<<ComboboxSelected>>", self.on_topic_change)
 
-        # Subtopic Dropdown
-        self.label_subtopic = tb.Label(self, text="Sub-Topic:")
-        self.label_subtopic.pack(pady=(15, 3), anchor="w", padx=15)
+        tb.Label(self, text="Sub-Topic:").pack(pady=(15, 3), anchor="w", padx=15)
         self.subtopic_var = tb.StringVar()
-        self.subtopic_dropdown = tb.Combobox(
-            self, textvariable=self.subtopic_var, state="readonly", bootstyle="secondary"
-        )
+        self.subtopic_dropdown = tb.Combobox(self, textvariable=self.subtopic_var, state="readonly")
         self.subtopic_dropdown.pack(fill="x", padx=15)
 
-        # Levels Input
-        self.label_levels = tb.Label(
-            self,
-            text="Number of Levels (for variable values):",
-        )
-        self.label_levels.pack(pady=(15, 3), anchor="w", padx=15)
+        tb.Label(self, text="Number of Levels (for variable values):").pack(pady=(15, 3), anchor="w", padx=15)
         self.levels_var = tb.StringVar()
         self.levels_entry = tb.Entry(self, textvariable=self.levels_var)
         self.levels_entry.pack(fill="x", padx=15)
 
-        # Generate Button
-        self.generate_btn = tb.Button(
-            self, text="Generate SAS Code", bootstyle="success-outline"
-        )
+        self.generate_btn = tb.Button(self, text="Generate SAS Code")
         self.generate_btn.pack(pady=20)
         self.generate_btn.configure(command=self.generate_sas)
 
-        # Output SAS Code Preview
-        self.output_box = tb.Text(
-            self,
-            height=15,
-            wrap="word",
-            font=("Consolas", 11),
-            borderwidth=1,
-            relief="sunken",
-        )
+        self.output_box = tb.Text(self, height=15, wrap="word", font=("Consolas", 11))
         self.output_box.pack(fill="both", padx=15, pady=(0, 15), expand=True)
 
-        # Initialize defaults
+        # Footer
+        self.footer_label = tb.Label(
+            self,
+            text="Made by Spencer Riddell, August 2025",
+            font=("Segoe UI", 8),
+            foreground="#666666",
+        )
+        self.footer_label.pack(side="bottom", pady=5)
+
         self.dataset_dropdown.current(0)
         self.var_type_dropdown.current(0)
         self.on_survey_change()
         self.on_vartype_change()
-
-    def apply_style_for_survey(self, survey_key):
-        style_info = SURVEY_STYLES.get(survey_key)
-        if not style_info:
-            return
-
-        # Update dropdown bootstyles to survey-specific color style
-        dropdowns = [
-            self.dataset_dropdown,
-            self.topic_dropdown,
-            self.subtopic_dropdown,
-            self.var_type_dropdown,
-        ]
-        for dd in dropdowns:
-            dd.configure(bootstyle=style_info["dropdown_bootstyle"])
-
-        # Update generate button style
-        self.generate_btn.configure(bootstyle=style_info["btn_bootstyle"])
 
     def on_survey_change(self, event=None):
         key = self.dataset_var.get()
         if not key:
             return
         self.current_survey_key = key
-
-        # Reset topic and subtopic selections
         self.topic_var.set("")
         self.subtopic_var.set("")
         self.output_box.delete("1.0", "end")
         self.levels_var.set("")
-
-        # Apply dropdown and button styles only
-        self.apply_style_for_survey(key)
 
     def on_vartype_change(self, event=None):
         vt = self.var_type_var.get()
@@ -358,16 +289,11 @@ class SASGeneratorApp(tb.Window):
         topic = self.topic_var.get()
         subtopic = self.subtopic_var.get()
 
-        # Validate inputs
         if not (var_code and var_name and description and var_type and levels):
-            messagebox.showerror(
-                "Missing input", "Please fill in all required fields before generating."
-            )
+            messagebox.showerror("Missing input", "Please fill in all required fields before generating.")
             return
         if var_type == "Indicator" and (not topic or not subtopic):
-            messagebox.showerror(
-                "Missing input", "Please select both Topic and Sub-Topic for Indicators."
-            )
+            messagebox.showerror("Missing input", "Please select both Topic and Sub-Topic for Indicators.")
             return
 
         try:
@@ -375,9 +301,7 @@ class SASGeneratorApp(tb.Window):
             if num_levels < 1:
                 raise ValueError()
         except Exception:
-            messagebox.showerror(
-                "Invalid input", "Please enter a valid positive integer for number of levels."
-            )
+            messagebox.showerror("Invalid input", "Please enter a valid positive integer for number of levels.")
             return
 
         self.output_box.delete("1.0", "end")
@@ -400,10 +324,7 @@ class SASGeneratorApp(tb.Window):
                 "Variable Value Input", f"Enter Variable Value #{i}:", parent=self
             )
             if val is None or val.strip() == "":
-                messagebox.showerror(
-                    "Invalid input",
-                    "Variable Value cannot be empty. SAS code generation cancelled.",
-                )
+                messagebox.showerror("Invalid input", "Variable Value cannot be empty. SAS code generation cancelled.")
                 return
             var_values.append(val.strip())
 
