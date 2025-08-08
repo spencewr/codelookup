@@ -197,7 +197,6 @@ for topic in TOPICS:
 class SASGeneratorApp(tb.Window):
     def __init__(self):
         super().__init__(title="SAS Code Generator", size=(900, 650))
-        self.style = tb.Style()
         self.geometry("900x650")
 
         # Current survey/theme info
@@ -214,26 +213,26 @@ class SASGeneratorApp(tb.Window):
             self, textvariable=self.dataset_var, bootstyle="info", state="readonly"
         )
         self.dataset_dropdown["values"] = sorted(SURVEYS.keys())
-        self.dataset_dropdown.pack(fill=X, padx=15)
+        self.dataset_dropdown.pack(fill="x", padx=15)
         self.dataset_dropdown.bind("<<ComboboxSelected>>", self.on_survey_change)
 
         # Variable Code
         self.label_var_code = tb.Label(self, text="Variable Code:")
         self.label_var_code.pack(pady=(15, 3), anchor="w", padx=15)
         self.var_code_entry = tb.Entry(self)
-        self.var_code_entry.pack(fill=X, padx=15)
+        self.var_code_entry.pack(fill="x", padx=15)
 
         # Variable Name
         self.label_var_name = tb.Label(self, text="Variable Name:")
         self.label_var_name.pack(pady=(15, 3), anchor="w", padx=15)
         self.var_name_entry = tb.Entry(self)
-        self.var_name_entry.pack(fill=X, padx=15)
+        self.var_name_entry.pack(fill="x", padx=15)
 
         # Description
         self.label_description = tb.Label(self, text="Description:")
         self.label_description.pack(pady=(15, 3), anchor="w", padx=15)
         self.description_entry = tb.Entry(self)
-        self.description_entry.pack(fill=X, padx=15)
+        self.description_entry.pack(fill="x", padx=15)
 
         # Topic Dropdown
         self.label_topic = tb.Label(self, text="Topic:")
@@ -243,7 +242,7 @@ class SASGeneratorApp(tb.Window):
             self, textvariable=self.topic_var, state="readonly"
         )
         self.topic_dropdown["values"] = list(TOPICS.keys())
-        self.topic_dropdown.pack(fill=X, padx=15)
+        self.topic_dropdown.pack(fill="x", padx=15)
         self.topic_dropdown.bind("<<ComboboxSelected>>", self.on_topic_change)
 
         # Subtopic Dropdown
@@ -253,7 +252,7 @@ class SASGeneratorApp(tb.Window):
         self.subtopic_dropdown = tb.Combobox(
             self, textvariable=self.subtopic_var, state="readonly"
         )
-        self.subtopic_dropdown.pack(fill=X, padx=15)
+        self.subtopic_dropdown.pack(fill="x", padx=15)
 
         # Variable Type Dropdown
         self.label_var_type = tb.Label(self, text="Variable Type:")
@@ -265,7 +264,7 @@ class SASGeneratorApp(tb.Window):
             values=["Indicator", "Demographic"],
             state="readonly",
         )
-        self.var_type_dropdown.pack(fill=X, padx=15)
+        self.var_type_dropdown.pack(fill="x", padx=15)
 
         # Levels Input
         self.label_levels = tb.Label(
@@ -275,7 +274,7 @@ class SASGeneratorApp(tb.Window):
         self.label_levels.pack(pady=(15, 3), anchor="w", padx=15)
         self.levels_var = tb.StringVar()
         self.levels_entry = tb.Entry(self, textvariable=self.levels_var)
-        self.levels_entry.pack(fill=X, padx=15)
+        self.levels_entry.pack(fill="x", padx=15)
 
         # Generate Button
         self.generate_btn = tb.Button(
@@ -293,7 +292,7 @@ class SASGeneratorApp(tb.Window):
             borderwidth=1,
             relief="sunken",
         )
-        self.output_box.pack(fill=BOTH, padx=15, pady=(0, 15), expand=True)
+        self.output_box.pack(fill="both", padx=15, pady=(0, 15), expand=True)
 
         # Set default survey
         self.dataset_dropdown.current(0)
@@ -314,9 +313,6 @@ class SASGeneratorApp(tb.Window):
 
         # Auto-fill population datasource info (not editable here, just stored)
         self.population = survey_info["population"]
-
-        # Update SAS template dataset fields automatically
-        # (No explicit field to show but used in code gen)
 
         # Reset topic & subtopic selections & clear outputs
         self.topic_var.set("")
