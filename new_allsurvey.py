@@ -1,52 +1,196 @@
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
 from tkinter import messagebox
+import tkinter.simpledialog as simpledialog
 
-# ... [topics, surveys, SAS_TEMPLATE same as before] ...
+# SAS Template
+SAS_TEMPLATE = """
+/* {var_value} */
+data new_varxx;
+YearNum = 2023;
+VarValID = {varvalid};
+Topic_ID = {topic_id};
+SubTopic_ID = {subtopic_id};
+ExcludeInclude = 1;
+SortOrder = 1;
+Topic_SortOrder = 1;
+SubTopic_SortOrder = 1;
+Topic_DefaultID = 1;
+DefaultID = 1;
+Indicator_SortOrder = ;
+YearDate = "2023-01-01";
+Dataset = "{dataset}";
+Dataset_Name = "{dataset_name}";
+Dataset_Type = "Health Surveys";
+VarCode = "{var_code}";
+VarValue = "{var_value}";
+VarType = "{var_type}";
+VarName = "{var_name}";
+Description = "{description}";
+Topic = "{topic}";
+Sub_Topic = "{sub_topic}";
+PopulationDatasource = "{population}";
+Note1 = "";
+Note2 = "";
+Note3 = "";
+CrossNotes = "";
+MapTitlePrefix = "";
+MapTitleSuffix = "";
+MapInsert = "";
+VarComments = "";
+Tag = "{var_name}_{tag_suffix}";
+DefaultPopulationSource = "{population}";
+output;
+run;
+"""
 
-SURVEY_STYLES = {
-    "YRBS": {
-        "bg": "#FFF0F5",
-        "entry_bg": "#FFF8F9",
-        "entry_fg": "#800000",
-        "btn_bootstyle": "danger-outline",
-        "text_bg": "#FFF8F9",
-        "text_fg": "#800000",
-        "dropdown_bg": "#FFD9E8",
+# Topics with subtopics and IDs (simplified for brevity)
+TOPICS = {
+    "Children and Youth": {
+        "id": 5,
+        "subtopics": {
+            "Child Development and Disabilities": 26,
+            "Day Care and School": 34,
+            "Drug and Alcohol Use": 10,
+            "Health Care Use": 17,
+            "Health Insurance": 15,
+            "Household and Neighborhood": 16,
+            "Health Status": 18,
+            "Mental Health": 3,
+            "Nutrition": 23,
+            "Physical Activity": 35,
+            "Physical Health Conditions": 12,
+            "Population Characteristics": 11,
+            "Safety": 4,
+            "Sleep": 33,
+            "Sexual Behavior": 30,
+            "Smoking": 7,
+            "Violence": 1,
+        },
     },
-    "CHS": {
-        "bg": "#D0F0F0",
-        "entry_bg": "#E0F7F7",
-        "entry_fg": "#004d40",
-        "btn_bootstyle": "success-outline",
-        "text_bg": "#E0F7F7",
-        "text_fg": "#004d40",
-        "dropdown_bg": "#B2DFDB",
+    "Healthy Living": {
+        "id": 4,
+        "subtopics": {
+            "Vaccinations": 29,
+            "Drug and Alcohol Use": 10,
+            "Health Status": 18,
+            "Nutrition": 23,
+            "Physical Activity": 35,
+            "Safety": 4,
+            "Screening": 19,
+            "Sexual Behavior": 30,
+        },
     },
-    "HANES": {
-        "bg": "#FFEDD5",
-        "entry_bg": "#FFF3E0",
-        "entry_fg": "#E65100",
-        "btn_bootstyle": "warning-outline",
-        "text_bg": "#FFF3E0",
-        "text_fg": "#E65100",
-        "dropdown_bg": "#FFCC80",
+    "Sleep": {"id": 33, "subtopics": {}},
+    "Smoking": {"id": 7, "subtopics": {}},
+    "Vaccinations": {"id": 29, "subtopics": {}},
+    "Violence": {"id": 1, "subtopics": {}},
+    "Community Characteristics": {
+        "id": 6,
+        "subtopics": {
+            "Day Care and School": 34,
+            "Economic Factors": 31,
+            "Population Characteristics": 11,
+            "Social Factors": 13,
+        },
     },
-    "CCHS": {
-        "bg": "#DFFFE0",
-        "entry_bg": "#E8FFF1",
-        "entry_fg": "#2E7D32",
-        "btn_bootstyle": "info-outline",
-        "text_bg": "#E8FFF1",
-        "text_fg": "#2E7D32",
-        "dropdown_bg": "#A5D6A7",
+    "Living and Environmental Conditions": {
+        "id": 7,
+        "subtopics": {
+            "Built Environment": 28,
+            "Housing": 14,
+        },
+    },
+    "Safety": {"id": 4, "subtopics": {}},
+    "Social Factors": {"id": 13, "subtopics": {}},
+    "Mental Health": {
+        "id": 3,
+        "subtopics": {
+            "Drug and Alcohol Use": 10,
+            "Mental Health Conditions": 20,
+            "Mental Health Counseling and Treatment": 27,
+        },
+    },
+    "Diseases and Conditions": {
+        "id": 1,
+        "subtopics": {
+            "Child Development and Disabilities": 26,
+            "Chronic Diseases": 24,
+            "Dental Health": 21,
+            "Foodborne or Waterborne Infections": 43,
+            "HIV-AIDS": 8,
+            "Hearing and Vision Health": 36,
+            "Hepatitis Infections": 48,
+            "Invasive Bacterial Infections": 45,
+            "Mosquitoborne Infections": 37,
+            "Other and Rare Diseases": 46,
+            "Person-to-Person Infections": 44,
+            "Respiratory Infections": 41,
+            "Sexually Transmitted Infections": 5,
+            "Syndromic Surveillance": 39,
+            "Tickborne Infections": 42,
+            "Tuberculosis": 53,
+            "Vaccine-Preventable Diseases": 47,
+            "Zoonotic Infections": 40,
+        },
+    },
+    "Health Care Access and Use": {
+        "id": 2,
+        "subtopics": {
+            "Health Care Use": 17,
+            "Health Insurance": 15,
+            "Mental Health Counseling and Treatment": 27,
+            "Screening": 19,
+            "Vaccinations": 29,
+        },
+    },
+    "Birth and Death": {
+        "id": 8,
+        "subtopics": {
+            "Birth": 38,
+            "Infant Mortality": 51,
+            "Leading Cause of Death": 52,
+            "Mortality and Premature Mortality": 49,
+        },
     },
 }
+
+# Survey dataset info with population and tag suffix
+SURVEYS = {
+    "YRBS": {
+        "full_name": "NYC Youth Risk Behavior Survey",
+        "population": "Youth",
+        "tag_suffix": "YRBS",
+    },
+    "CHS": {
+        "full_name": "Community Health Survey",
+        "population": "Adult",
+        "tag_suffix": "CHS",
+    },
+    "HANES": {
+        "full_name": "NYC Health and Nutrition Examination Survey",
+        "population": "Adult",
+        "tag_suffix": "HANES",
+    },
+    "CCHS": {
+        "full_name": "NYC Child Health Data",
+        "population": "Youth",
+        "tag_suffix": "CCHS",
+    },
+}
+
+# Survey style info for button color only (used for dropdown bg and button)
+SURVEY_STYLES = {
+    "YRBS": {"btn_bootstyle": "danger-outline", "dropdown_bootstyle": "danger"},
+    "CHS": {"btn_bootstyle": "success-outline", "dropdown_bootstyle": "success"},
+    "HANES": {"btn_bootstyle": "warning-outline", "dropdown_bootstyle": "warning"},
+    "CCHS": {"btn_bootstyle": "info-outline", "dropdown_bootstyle": "info"},
+}
+
 
 class SASGeneratorApp(tb.Window):
     def __init__(self):
         super().__init__(title="SAS Code Generator", size=(900, 650))
-        self.geometry("900x650")
 
         # Variables
         self.current_survey_key = None
@@ -80,7 +224,7 @@ class SASGeneratorApp(tb.Window):
         self.description_entry = tb.Entry(self)
         self.description_entry.pack(fill="x", padx=15)
 
-        # Variable Type Dropdown (moved before Topic)
+        # Variable Type Dropdown (before Topic)
         self.label_var_type = tb.Label(self, text="Variable Type:")
         self.label_var_type.pack(pady=(15, 3), anchor="w", padx=15)
         self.var_type_var = tb.StringVar()
@@ -89,6 +233,7 @@ class SASGeneratorApp(tb.Window):
             textvariable=self.var_type_var,
             values=["Indicator", "Demographic"],
             state="readonly",
+            bootstyle="secondary",
         )
         self.var_type_dropdown.pack(fill="x", padx=15)
         self.var_type_dropdown.bind("<<ComboboxSelected>>", self.on_vartype_change)
@@ -98,9 +243,12 @@ class SASGeneratorApp(tb.Window):
         self.label_topic.pack(pady=(15, 3), anchor="w", padx=15)
         self.topic_var = tb.StringVar()
         self.topic_dropdown = tb.Combobox(
-            self, textvariable=self.topic_var, state="readonly"
+            self,
+            textvariable=self.topic_var,
+            values=sorted(TOPICS.keys()),
+            state="readonly",
+            bootstyle="secondary",
         )
-        self.topic_dropdown["values"] = list(TOPICS.keys())
         self.topic_dropdown.pack(fill="x", padx=15)
         self.topic_dropdown.bind("<<ComboboxSelected>>", self.on_topic_change)
 
@@ -109,7 +257,7 @@ class SASGeneratorApp(tb.Window):
         self.label_subtopic.pack(pady=(15, 3), anchor="w", padx=15)
         self.subtopic_var = tb.StringVar()
         self.subtopic_dropdown = tb.Combobox(
-            self, textvariable=self.subtopic_var, state="readonly"
+            self, textvariable=self.subtopic_var, state="readonly", bootstyle="secondary"
         )
         self.subtopic_dropdown.pack(fill="x", padx=15)
 
@@ -141,43 +289,29 @@ class SASGeneratorApp(tb.Window):
         )
         self.output_box.pack(fill="both", padx=15, pady=(0, 15), expand=True)
 
-        # Set default survey and variable type
+        # Initialize defaults
         self.dataset_dropdown.current(0)
         self.var_type_dropdown.current(0)
         self.on_survey_change()
         self.on_vartype_change()
 
     def apply_style_for_survey(self, survey_key):
-        style_info = SURVEY_STYLES.get(survey_key, None)
+        style_info = SURVEY_STYLES.get(survey_key)
         if not style_info:
             return
 
-        # Window background
-        self.configure(background=style_info["bg"])
+        # Update dropdown bootstyles to survey-specific color style
+        dropdowns = [
+            self.dataset_dropdown,
+            self.topic_dropdown,
+            self.subtopic_dropdown,
+            self.var_type_dropdown,
+        ]
+        for dd in dropdowns:
+            dd.configure(bootstyle=style_info["dropdown_bootstyle"])
 
-        # Labels foreground to dark color (black or survey color)
-        fg_color = style_info["entry_fg"]
-        bg_color = style_info["bg"]
-
-        for widget in self.winfo_children():
-            # Set background for Labels
-            if isinstance(widget, tb.Label):
-                widget.configure(background=bg_color, foreground=fg_color)
-            # Set Entry fields
-            elif isinstance(widget, tb.Entry):
-                widget.configure(background=style_info["entry_bg"], foreground=style_info["entry_fg"])
-            # Set Comboboxes background (requires style)
-            elif isinstance(widget, tb.Combobox):
-                widget.configure(bootstyle="info")
-                # We will set a style with custom bg later if needed
-            # Buttons style
-            elif isinstance(widget, tb.Button):
-                widget.configure(bootstyle=style_info["btn_bootstyle"])
-
-        # Output box colors
-        self.output_box.configure(
-            background=style_info["text_bg"], foreground=style_info["text_fg"]
-        )
+        # Update generate button style
+        self.generate_btn.configure(bootstyle=style_info["btn_bootstyle"])
 
     def on_survey_change(self, event=None):
         key = self.dataset_var.get()
@@ -185,40 +319,23 @@ class SASGeneratorApp(tb.Window):
             return
         self.current_survey_key = key
 
-        # Use ttkbootstrap theme if available
-        survey_theme = SURVEYS[key].get("theme", None)
-        if survey_theme:
-            try:
-                self.style.theme_use(survey_theme)
-            except Exception:
-                pass
-
-        self.population = SURVEYS[key]["population"]
-
-        # Clear Topic and Subtopic selections and values
+        # Reset topic and subtopic selections
         self.topic_var.set("")
         self.subtopic_var.set("")
         self.output_box.delete("1.0", "end")
         self.levels_var.set("")
 
-        # Update Topic dropdown bg color reset
-        self.update_topic_dropdown_bg(None)
-
-        # Apply dramatic style changes
+        # Apply dropdown and button styles only
         self.apply_style_for_survey(key)
 
     def on_vartype_change(self, event=None):
         vt = self.var_type_var.get()
         if vt == "Demographic":
-            # Disable topic and subtopic
             self.topic_dropdown.configure(state="disabled")
             self.subtopic_dropdown.configure(state="disabled")
-            # Clear selections
             self.topic_var.set("")
             self.subtopic_var.set("")
-            self.update_topic_dropdown_bg(None)
         else:
-            # Enable topic and subtopic
             self.topic_dropdown.configure(state="readonly")
             self.subtopic_dropdown.configure(state="readonly")
 
@@ -227,20 +344,10 @@ class SASGeneratorApp(tb.Window):
         if not topic:
             self.subtopic_dropdown["values"] = []
             self.subtopic_var.set("")
-            self.update_topic_dropdown_bg(None)
             return
-        subtopics = list(TOPICS[topic]["subtopics"].keys())
+        subtopics = sorted(TOPICS[topic]["subtopics"].keys())
         self.subtopic_dropdown["values"] = subtopics
         self.subtopic_var.set("")
-        self.update_topic_dropdown_bg(TOPICS[topic]["color"])
-
-    def update_topic_dropdown_bg(self, color):
-        style_name = "Custom.TCombobox"
-        if color:
-            self.style.configure(style_name, fieldbackground=color)
-        else:
-            self.style.configure(style_name, fieldbackground="white")
-        self.topic_dropdown.configure(style=style_name)
 
     def generate_sas(self):
         var_code = self.var_code_entry.get().strip()
@@ -251,7 +358,7 @@ class SASGeneratorApp(tb.Window):
         topic = self.topic_var.get()
         subtopic = self.subtopic_var.get()
 
-        # Validation
+        # Validate inputs
         if not (var_code and var_name and description and var_type and levels):
             messagebox.showerror(
                 "Missing input", "Please fill in all required fields before generating."
@@ -281,16 +388,16 @@ class SASGeneratorApp(tb.Window):
         tag_suffix = survey_info["tag_suffix"]
 
         topic_id = TOPICS[topic]["id"] if topic in TOPICS else 0
-        subtopic_id = TOPICS[topic]["subtopics"][subtopic] if var_type == "Indicator" and subtopic in TOPICS.get(topic, {}).get("subtopics", {}) else 0
-
-        import tkinter.simpledialog as simpledialog
+        subtopic_id = (
+            TOPICS[topic]["subtopics"][subtopic]
+            if var_type == "Indicator" and subtopic in TOPICS.get(topic, {}).get("subtopics", {})
+            else 0
+        )
 
         var_values = []
         for i in range(1, num_levels + 1):
             val = simpledialog.askstring(
-                "Variable Value Input",
-                f"Enter Variable Value #{i}:",
-                parent=self,
+                "Variable Value Input", f"Enter Variable Value #{i}:", parent=self
             )
             if val is None or val.strip() == "":
                 messagebox.showerror(
