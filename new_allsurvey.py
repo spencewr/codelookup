@@ -121,25 +121,25 @@ SURVEYS = {
         "full_name": "NYC Youth Risk Behavior Survey",
         "population": "Youth",
         "tag_suffix": "_YRBS",
-        "theme": "superhero",  # bright blue
+        "theme": "superhero",
     },
     "CHS": {
         "full_name": "NYC Community Health Survey",
         "population": "Adult",
         "tag_suffix": "_CHS",
-        "theme": "flatly",  # teal/green calm
+        "theme": "flatly",
     },
     "HANES": {
         "full_name": "NYC Health and Nutrition Examination Survey",
         "population": "Adult",
         "tag_suffix": "_HANES",
-        "theme": "cosmo",  # sleek blue/grey
+        "theme": "cosmo",
     },
     "CCHS": {
         "full_name": "NYC Child Health Data",
         "population": "Youth",
         "tag_suffix": "_CCHS",
-        "theme": "minty",  # pastel mint
+        "theme": "minty",
     },
 }
 
@@ -184,26 +184,19 @@ output;
 run;
 """
 
-# --- Helper function ---
 def alphabetize_dict(d):
     return dict(sorted(d.items(), key=lambda item: item[0].lower()))
 
-# Alphabetize topics and subtopics
 TOPICS = alphabetize_dict(TOPICS)
 for topic in TOPICS:
     TOPICS[topic]["subtopics"] = alphabetize_dict(TOPICS[topic]["subtopics"])
 
-# --- App Class ---
 class SASGeneratorApp(tb.Window):
     def __init__(self):
         super().__init__(title="SAS Code Generator", size=(900, 650))
         self.geometry("900x650")
 
-        # Current survey/theme info
         self.current_survey_key = None
-        self.current_topic_color = None
-
-        # ============ Widgets ============
 
         # Dataset Dropdown
         self.label_dataset = tb.Label(self, text="Select Survey Dataset:")
@@ -234,6 +227,19 @@ class SASGeneratorApp(tb.Window):
         self.description_entry = tb.Entry(self)
         self.description_entry.pack(fill="x", padx=15)
 
+        # Variable Type Dropdown (moved before Topic)
+        self.label_var_type = tb.Label(self, text="Variable Type:")
+        self.label_var_type.pack(pady=(15, 3), anchor="w", padx=15)
+        self.var_type_var = tb.StringVar()
+        self.var_type_dropdown = tb.Combobox(
+            self,
+            textvariable=self.var_type_var,
+            values=["Indicator", "Demographic"],
+            state="readonly",
+        )
+        self.var_type_dropdown.pack(fill="x", padx=15)
+        self.var_type_dropdown.bind("<<ComboboxSelected>>", self.on_vartype_change)
+
         # Topic Dropdown
         self.label_topic = tb.Label(self, text="Topic:")
         self.label_topic.pack(pady=(15, 3), anchor="w", padx=15)
@@ -253,18 +259,6 @@ class SASGeneratorApp(tb.Window):
             self, textvariable=self.subtopic_var, state="readonly"
         )
         self.subtopic_dropdown.pack(fill="x", padx=15)
-
-        # Variable Type Dropdown
-        self.label_var_type = tb.Label(self, text="Variable Type:")
-        self.label_var_type.pack(pady=(15, 3), anchor="w", padx=15)
-        self.var_type_var = tb.StringVar()
-        self.var_type_dropdown = tb.Combobox(
-            self,
-            textvariable=self.var_type_var,
-            values=["Indicator", "Demographic"],
-            state="readonly",
-        )
-        self.var_type_dropdown.pack(fill="x", padx=15)
 
         # Levels Input
         self.label_levels = tb.Label(
@@ -294,9 +288,11 @@ class SASGeneratorApp(tb.Window):
         )
         self.output_box.pack(fill="both", padx=15, pady=(0, 15), expand=True)
 
-        # Set default survey
+        # Set default survey and variable type
         self.dataset_dropdown.current(0)
+        self.var_type_dropdown.current(0)
         self.on_survey_change()
+        self.on_vartype_change()
 
     def on_survey_change(self, event=None):
         key = self.dataset_var.get()
@@ -305,23 +301,36 @@ class SASGeneratorApp(tb.Window):
         self.current_survey_key = key
         survey_info = SURVEYS[key]
 
-        # Change window theme to match survey theme
         try:
             self.style.theme_use(survey_info["theme"])
         except Exception:
-            pass  # fallback if theme not found
+            pass
 
-        # Auto-fill population datasource info (not editable here, just stored)
         self.population = survey_info["population"]
 
-        # Reset topic & subtopic selections & clear outputs
+        # Reset topic and subtopic
         self.topic_var.set("")
         self.subtopic_var.set("")
         self.output_box.delete("1.0", "end")
         self.levels_var.set("")
 
-        # Reset topic dropdown bg color (no selection)
+        # Reset topic dropdown bg color
         self.update_topic_dropdown_bg(None)
+
+    def on_vartype_change(self, event=None):
+        vt = self.var_type_var.get()
+        if vt == "Demographic":
+            # Disable topic and subtopic
+            self.topic_dropdown.configure(state="disabled")
+            self.subtopic_dropdown.configure(state="disabled")
+            # Clear selections
+            self.topic_var.set("")
+            self.subtopic_var.set("")
+            self.update_topic_dropdown_bg(None)
+        else:
+            # Enable topic and subtopic
+            self.topic_dropdown.configure(state="readonly")
+            self.subtopic_dropdown.configure(state="readonly")
 
     def on_topic_change(self, event=None):
         topic = self.topic_var.get()
@@ -330,21 +339,13 @@ class SASGeneratorApp(tb.Window):
             self.subtopic_var.set("")
             self.update_topic_dropdown_bg(None)
             return
-        # Update subtopic dropdown with alphabetized subtopics
         subtopics = list(TOPICS[topic]["subtopics"].keys())
         self.subtopic_dropdown["values"] = subtopics
         self.subtopic_var.set("")
-
-        # Change topic dropdown background color
         self.update_topic_dropdown_bg(TOPICS[topic]["color"])
 
     def update_topic_dropdown_bg(self, color):
         style_name = "Custom.TCombobox"
-        # Remove old style if exists
-        if hasattr(self, "custom_style"):
-            self.style.layout(style_name, [])
-            self.style.element_create(style_name + ".field", "from", "clam")
-        # Create new style with bg color if color given
         if color:
             self.style.configure(style_name, fieldbackground=color)
         else:
@@ -352,18 +353,23 @@ class SASGeneratorApp(tb.Window):
         self.topic_dropdown.configure(style=style_name)
 
     def generate_sas(self):
-        # Validate inputs
         var_code = self.var_code_entry.get().strip()
         var_name = self.var_name_entry.get().strip()
         description = self.description_entry.get().strip()
-        topic = self.topic_var.get()
-        subtopic = self.subtopic_var.get()
         var_type = self.var_type_var.get()
         levels = self.levels_var.get()
+        topic = self.topic_var.get()
+        subtopic = self.subtopic_var.get()
 
-        if not (var_code and var_name and description and topic and subtopic and var_type):
+        # Validation
+        if not (var_code and var_name and description and var_type and levels):
             messagebox.showerror(
-                "Missing input", "Please fill in all fields before generating SAS code."
+                "Missing input", "Please fill in all required fields before generating."
+            )
+            return
+        if var_type == "Indicator" and (not topic or not subtopic):
+            messagebox.showerror(
+                "Missing input", "Please select both Topic and Sub-Topic for Indicators."
             )
             return
 
@@ -377,18 +383,16 @@ class SASGeneratorApp(tb.Window):
             )
             return
 
-        # Clear output box
         self.output_box.delete("1.0", "end")
 
-        subtopic_id = TOPICS[topic]["subtopics"][subtopic]
-        topic_id = TOPICS[topic]["id"]
         survey_info = SURVEYS[self.current_survey_key]
         dataset_name = survey_info["full_name"]
         population = survey_info["population"]
         tag_suffix = survey_info["tag_suffix"]
 
-        # For each level, ask user for VarValue (via simple dialog)
-        # Since ttkbootstrap does not include simpledialog, we import tkinter's simpledialog here
+        topic_id = TOPICS[topic]["id"] if topic in TOPICS else 0
+        subtopic_id = TOPICS[topic]["subtopics"][subtopic] if var_type == "Indicator" and subtopic in TOPICS.get(topic, {}).get("subtopics", {}) else 0
+
         import tkinter.simpledialog as simpledialog
 
         var_values = []
@@ -406,7 +410,6 @@ class SASGeneratorApp(tb.Window):
                 return
             var_values.append(val.strip())
 
-        # Generate SAS code for each level
         for idx, val in enumerate(var_values, 1):
             sas_code = SAS_TEMPLATE.format(
                 varvalid=idx,
@@ -419,8 +422,8 @@ class SASGeneratorApp(tb.Window):
                 var_type=var_type,
                 var_name=var_name,
                 description=description,
-                topic=topic,
-                sub_topic=subtopic,
+                topic=topic if var_type == "Indicator" else "",
+                sub_topic=subtopic if var_type == "Indicator" else "",
                 population=population,
                 tag_suffix=tag_suffix,
             )
