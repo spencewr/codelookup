@@ -235,15 +235,6 @@ class SASGeneratorApp(tb.Window):
         self.output_box = tb.Text(self, height=15, wrap="word", font=("Consolas", 11))
         self.output_box.pack(fill="both", padx=15, pady=(0, 15), expand=True)
 
-        # Footer
-        self.footer_label = tb.Label(
-            self,
-            text="Made by Spencer Riddell, August 2025",
-            font=("Segoe UI", 8),
-            foreground="#666666",
-        )
-        self.footer_label.pack(side="bottom", pady=5)
-
         self.dataset_dropdown.current(0)
         self.var_type_dropdown.current(0)
         self.on_survey_change()
