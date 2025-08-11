@@ -285,6 +285,7 @@ class SASGeneratorApp(tb.Window):
         self.on_survey_change()
         self.on_vartype_change()
         self.load_variable(0)
+        self.update_nav_buttons()  # Add this line to properly initialize button states
 
     # === Event Handlers ===
 
