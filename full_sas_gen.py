@@ -285,7 +285,7 @@ class SASGeneratorApp(tb.Window):
         self.on_survey_change()
         self.on_vartype_change()
         self.load_variable(0)
-        self.update_nav_buttons()  # Add this line to properly initialize button states
+        self.update_nav_buttons()
 
     # === Event Handlers ===
 
@@ -457,73 +457,70 @@ class SASGeneratorApp(tb.Window):
                 return
             self.load_variable(self.current_var_index + 1)
 
-def add_variable(self):
-    if not self.save_current_variable():
-        return
-    # Clear form for new variable input
-    self.current_var_index = len(self.variables)
-    self.clear_form()
-    # Enable delete if at least one variable already exists
-    if self.variables:
-        self.delete_var_btn.configure(state="normal")
-
-
-def update_nav_buttons(self):
-    self.prev_btn.configure(state="normal" if self.current_var_index > 0 else "disabled")
-    self.next_btn.configure(state="normal" if self.current_var_index < len(self.variables) - 1 else "disabled")
-    # Allow delete if we have any saved variables OR we're currently editing a variable
-    self.delete_var_btn.configure(
-        state="normal" if self.variables or self.current_var_index >= 0 else "disabled"
-    )
-
-
-def delete_variable(self):
-    # Case 1: No saved variables yet — just clear the form
-    if not self.variables:
-        if (
-            self.var_code_entry.get().strip()
-            or self.var_name_entry.get().strip()
-            or self.description_entry.get().strip()
-        ):
-            result = messagebox.askyesno(
-                "Clear Form",
-                "No variables saved yet.\nClear the current form?"
-            )
-            if not result:
-                return
+    def add_variable(self):
+        if not self.save_current_variable():
+            return
+        # Clear form for new variable input
+        self.current_var_index = len(self.variables)
         self.clear_form()
-        self.current_var_index = -1
+        # Enable delete if at least one variable already exists
+        if self.variables:
+            self.delete_var_btn.configure(state="normal")
+
+    def update_nav_buttons(self):
+        self.prev_btn.configure(state="normal" if self.current_var_index > 0 else "disabled")
+        self.next_btn.configure(state="normal" if self.current_var_index < len(self.variables) - 1 else "disabled")
+        # Allow delete if we have any saved variables OR we're currently editing a variable
+        self.delete_var_btn.configure(
+            state="normal" if self.variables or self.current_var_index >= 0 else "disabled"
+        )
+
+    def delete_variable(self):
+        # Case 1: No saved variables yet — just clear the form
+        if not self.variables:
+            if (
+                self.var_code_entry.get().strip()
+                or self.var_name_entry.get().strip()
+                or self.description_entry.get().strip()
+            ):
+                result = messagebox.askyesno(
+                    "Clear Form",
+                    "No variables saved yet.\nClear the current form?"
+                )
+                if not result:
+                    return
+            self.clear_form()
+            self.current_var_index = -1
+            self.update_nav_buttons()
+            return
+
+        # Case 2: We have saved variables, but index is invalid
+        if self.current_var_index < 0 or self.current_var_index >= len(self.variables):
+            messagebox.showwarning("Warning", "No current variable selected to delete.")
+            return
+
+        # Normal delete process
+        var_name = self.variables[self.current_var_index].get("var_name", "Unknown")
+        result = messagebox.askyesno(
+            "Confirm Delete", 
+            f"Are you sure you want to delete variable '{var_name}'?\n\nThis action cannot be undone."
+        )
+        if not result:
+            return
+
+        del self.variables[self.current_var_index]
+
+        if not self.variables:
+            self.current_var_index = -1
+            self.clear_form()
+        elif self.current_var_index >= len(self.variables):
+            self.current_var_index = len(self.variables) - 1
+            self.load_variable(self.current_var_index)
+        else:
+            self.load_variable(self.current_var_index)
+
         self.update_nav_buttons()
-        return
-
-    # Case 2: We have saved variables, but index is invalid
-    if self.current_var_index < 0 or self.current_var_index >= len(self.variables):
-        messagebox.showwarning("Warning", "No current variable selected to delete.")
-        return
-
-    # Normal delete process
-    var_name = self.variables[self.current_var_index].get("var_name", "Unknown")
-    result = messagebox.askyesno(
-        "Confirm Delete", 
-        f"Are you sure you want to delete variable '{var_name}'?\n\nThis action cannot be undone."
-    )
-    if not result:
-        return
-
-    del self.variables[self.current_var_index]
-
-    if not self.variables:
-        self.current_var_index = -1
-        self.clear_form()
-    elif self.current_var_index >= len(self.variables):
-        self.current_var_index = len(self.variables) - 1
-        self.load_variable(self.current_var_index)
-    else:
-        self.load_variable(self.current_var_index)
-
-    self.update_nav_buttons()
-    messagebox.showinfo("Success", f"Variable '{var_name}' has been deleted.")
-
+        messagebox.showinfo("Success", f"Variable '{var_name}' has been deleted.")
 
     # === Generate SAS code ===
 
