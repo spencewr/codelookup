@@ -3,11 +3,6 @@ from ttkbootstrap.constants import *
 import tkinter as tk
 from tkinter import messagebox
 
-# ======================
-# Your ORIGINAL SURVEYS, TOPICS, SUBTOPICS
-# (copied from your first message exactly)
-# ======================
-
 SAS_TEMPLATE = """
 /* {var_value} */
 data new_varxx;
@@ -189,10 +184,6 @@ class SASGeneratorApp(tb.Window):
         self.variables = []  # List to store multiple variables info
         self.current_var_index = 0
 
-        # Header/Footer placeholders
-        self.program_header = "/* ===== PROGRAM HEADER (INSERT YOUR SAS HEADER HERE) ===== */"
-        self.program_footer = "/* ===== PROGRAM FOOTER (INSERT YOUR SAS FOOTER HERE) ===== */"
-
         # === Dataset selection ===
         tb.Label(self, text="Select Survey Dataset:").pack(pady=(15, 3), anchor="w", padx=15)
         self.dataset_var = tb.StringVar()
@@ -293,7 +284,6 @@ class SASGeneratorApp(tb.Window):
     # === Event Handlers ===
 
     def on_survey_change(self, event=None):
-        # Clear topic/subtopic because they may depend on survey
         self.topic_var.set("")
         self.subtopic_var.set("")
 
@@ -319,7 +309,6 @@ class SASGeneratorApp(tb.Window):
         self.subtopic_var.set("")
 
     def on_levels_change(self, event=None):
-        # Clear previous entries
         for widget in self.level_names_frame.winfo_children():
             widget.destroy()
         self.level_name_entries.clear()
@@ -341,7 +330,6 @@ class SASGeneratorApp(tb.Window):
     # === Variable Data Management ===
 
     def save_current_variable(self):
-        # Validate required fields first
         if not self.dataset_var.get():
             messagebox.showerror("Error", "Please select a Survey Dataset.")
             return False
@@ -364,13 +352,11 @@ class SASGeneratorApp(tb.Window):
         if not self.levels_var.get():
             messagebox.showerror("Error", "Please select Number of Levels.")
             return False
-        # Check level names
         for idx, entry in enumerate(self.level_name_entries, start=1):
             if not entry.get().strip():
                 messagebox.showerror("Error", f"Please enter a name for Level {idx}.")
                 return False
 
-        # Save data
         data = {
             "dataset": self.dataset_var.get(),
             "dataset_name": SURVEYS[self.dataset_var.get()]["full_name"],
@@ -383,114 +369,134 @@ class SASGeneratorApp(tb.Window):
             "topic": self.topic_var.get() if self.var_type_var.get() == "Indicator" else "",
             "sub_topic": self.subtopic_var.get() if self.var_type_var.get() == "Indicator" else "",
             "topic_id": TOPICS[self.topic_var.get()]["id"] if self.topic_var.get() in TOPICS else 0,
-            "subtopic_id": 0,
-            "levels": [e.get().strip() for e in self.level_name_entries],
+            "subtopic_id": (
+                TOPICS[self.topic_var.get()]["subtopics"][self.subtopic_var.get()]
+                if self.var_type_var.get() == "Indicator"
+                and self.subtopic_var.get() in TOPICS.get(self.topic_var.get(), {}).get("subtopics", {})
+                else 0
+            ),
+            "levels": [entry.get().strip() for entry in self.level_name_entries],
         }
-        # Subtopic id
-        if data["topic"] and data["sub_topic"]:
-            data["subtopic_id"] = TOPICS[data["topic"]]["subtopics"].get(data["sub_topic"], 0)
 
-        # Store or update current variable
+        # If current index exists in variables list, update it; else append
         if self.current_var_index < len(self.variables):
             self.variables[self.current_var_index] = data
         else:
             self.variables.append(data)
+            self.current_var_index = len(self.variables) - 1
         return True
 
     def load_variable(self, index):
-        if index >= len(self.variables):
-            # Clear all fields for new variable
-            self.dataset_var.set("")
-            self.var_code_entry.delete(0, tk.END)
-            self.var_name_entry.delete(0, tk.END)
-            self.description_entry.delete(0, tk.END)
-            self.var_type_var.set("")
-            self.topic_var.set("")
-            self.subtopic_var.set("")
-            self.levels_var.set("")
-            self.on_vartype_change()
-            self.on_topic_change()
-            # Clear level name entries
-            for w in self.level_names_frame.winfo_children():
-                w.destroy()
-            self.level_name_entries.clear()
-        else:
-            data = self.variables[index]
-            self.dataset_var.set(data["dataset"])
-            self.var_code_entry.delete(0, tk.END)
-            self.var_code_entry.insert(0, data["var_code"])
-            self.var_name_entry.delete(0, tk.END)
-            self.var_name_entry.insert(0, data["var_name"])
-            self.description_entry.delete(0, tk.END)
-            self.description_entry.insert(0, data["description"])
-            self.var_type_var.set(data["var_type"])
-            self.on_vartype_change()
-            self.topic_var.set(data["topic"])
-            self.on_topic_change()
-            self.subtopic_var.set(data["sub_topic"])
-            self.levels_var.set(str(len(data["levels"])))
-            self.on_levels_change()
-            # Populate level names
-            for entry, val in zip(self.level_name_entries, data["levels"]):
-                entry.delete(0, tk.END)
-                entry.insert(0, val)
+        if not self.variables or index < 0 or index >= len(self.variables):
+            # Clear form if out of range
+            self.clear_form()
+            self.current_var_index = -1
+            self.update_nav_buttons()
+            return
 
-        # Update nav buttons states
-        self.prev_btn.configure(state=NORMAL if index > 0 else DISABLED)
-        self.next_btn.configure(state=NORMAL if index < len(self.variables) - 1 else DISABLED)
+        self.current_var_index = index
+        var_data = self.variables[index]
+
+        self.dataset_var.set(var_data["dataset"])
+        self.var_code_entry.delete(0, "end")
+        self.var_code_entry.insert(0, var_data["var_code"])
+
+        self.var_name_entry.delete(0, "end")
+        self.var_name_entry.insert(0, var_data["var_name"])
+
+        self.description_entry.delete(0, "end")
+        self.description_entry.insert(0, var_data["description"])
+
+        self.var_type_var.set(var_data["var_type"])
+        self.on_vartype_change()
+
+        self.topic_var.set(var_data["topic"])
+        self.on_topic_change()
+
+        self.subtopic_var.set(var_data["sub_topic"])
+
+        self.levels_var.set(str(len(var_data["levels"])))
+        self.on_levels_change()
+
+        for entry, val in zip(self.level_name_entries, var_data["levels"]):
+            entry.delete(0, "end")
+            entry.insert(0, val)
+
+        self.update_nav_buttons()
+
+    def clear_form(self):
+        self.dataset_var.set("")
+        self.var_code_entry.delete(0, "end")
+        self.var_name_entry.delete(0, "end")
+        self.description_entry.delete(0, "end")
+        self.var_type_var.set("")
+        self.topic_var.set("")
+        self.subtopic_var.set("")
+        self.subtopic_dropdown["values"] = []
+        self.levels_var.set("")
+        self.on_levels_change()
+        self.update_nav_buttons()
+
+    # === Navigation ===
 
     def prev_variable(self):
-        if self.save_current_variable():
-            if self.current_var_index > 0:
-                self.current_var_index -= 1
-                self.load_variable(self.current_var_index)
+        if self.current_var_index > 0:
+            if not self.save_current_variable():
+                return
+            self.load_variable(self.current_var_index - 1)
 
     def next_variable(self):
-        if self.save_current_variable():
-            if self.current_var_index < len(self.variables) - 1:
-                self.current_var_index += 1
-                self.load_variable(self.current_var_index)
+        if self.current_var_index < len(self.variables) - 1:
+            if not self.save_current_variable():
+                return
+            self.load_variable(self.current_var_index + 1)
 
     def add_variable(self):
-        if self.save_current_variable():
-            self.current_var_index = len(self.variables)
-            self.load_variable(self.current_var_index)
+        if not self.save_current_variable():
+            return
+        # Clear form for new variable input
+        self.current_var_index = len(self.variables)
+        self.clear_form()
 
-    # === SAS Code Generation ===
+    def update_nav_buttons(self):
+        self.prev_btn.configure(state="normal" if self.current_var_index > 0 else "disabled")
+        self.next_btn.configure(state="normal" if self.current_var_index < len(self.variables) - 1 else "disabled")
 
-   def generate_sas_code(self):
-    if not self.save_current_variable():
-        return
-    if not self.variables:
-        messagebox.showerror("Error", "No variables to generate SAS code.")
-        return
+    # === Generate SAS code ===
 
-    sas_code_parts = []
+    def generate_sas_code(self):
+        if not self.save_current_variable():
+            return
+        if not self.variables:
+            messagebox.showerror("Error", "No variables to generate SAS code.")
+            return
 
-    for var_data in self.variables:
-        for idx, val in enumerate(var_data["levels"], start=1):
-            sas_code_parts.append(
-                SAS_TEMPLATE.format(
-                    varvalid=idx,
-                    topic_id=var_data["topic_id"],
-                    subtopic_id=var_data["subtopic_id"],
-                    dataset=var_data["dataset"],
-                    dataset_name=var_data["dataset_name"],
-                    var_code=var_data["var_code"],
-                    var_value=val,
-                    var_type=var_data["var_type"],
-                    var_name=var_data["var_name"],
-                    description=var_data["description"],
-                    topic=var_data["topic"],
-                    sub_topic=var_data["sub_topic"],
-                    population=var_data["population"],
-                    tag_suffix=var_data["tag_suffix"],
+        sas_code_parts = []
+
+        for var_data in self.variables:
+            for idx, val in enumerate(var_data["levels"], start=1):
+                sas_code_parts.append(
+                    SAS_TEMPLATE.format(
+                        varvalid=idx,
+                        topic_id=var_data["topic_id"],
+                        subtopic_id=var_data["subtopic_id"],
+                        dataset=var_data["dataset"],
+                        dataset_name=var_data["dataset_name"],
+                        var_code=var_data["var_code"],
+                        var_value=val,
+                        var_type=var_data["var_type"],
+                        var_name=var_data["var_name"],
+                        description=var_data["description"],
+                        topic=var_data["topic"],
+                        sub_topic=var_data["sub_topic"],
+                        population=var_data["population"],
+                        tag_suffix=var_data["tag_suffix"],
+                    )
                 )
-            )
-            sas_code_parts.append("")  # blank line between entries
+                sas_code_parts.append("")  # blank line between entries
 
-    full_code = "\n".join(sas_code_parts)
-    self.show_output_popup(full_code)
+        full_code = "\n".join(sas_code_parts)
+        self.show_output_popup(full_code)
 
     # === Popup for SAS output ===
 
