@@ -259,6 +259,11 @@ class SASGeneratorApp(tb.Window):
         )
         self.add_var_btn.pack(side="right")
 
+        self.delete_var_btn = tb.Button(
+            nav_frame, text="Delete Current Variable", bootstyle="danger", command=self.delete_variable
+        )
+        self.delete_var_btn.pack(side="right", padx=(0, 10))
+
         # Generate SAS Code button (green)
         self.generate_btn = tb.Button(
             self, text="Generate SAS Code", bootstyle="success", command=self.generate_sas_code
@@ -458,9 +463,48 @@ class SASGeneratorApp(tb.Window):
         self.current_var_index = len(self.variables)
         self.clear_form()
 
+    def delete_variable(self):
+        if not self.variables:
+            messagebox.showwarning("Warning", "No variables to delete.")
+            return
+        
+        if self.current_var_index < 0 or self.current_var_index >= len(self.variables):
+            messagebox.showwarning("Warning", "No current variable selected to delete.")
+            return
+        
+        # Confirm deletion
+        var_name = self.variables[self.current_var_index].get("var_name", "Unknown")
+        result = messagebox.askyesno(
+            "Confirm Delete", 
+            f"Are you sure you want to delete variable '{var_name}'?\n\nThis action cannot be undone."
+        )
+        
+        if not result:
+            return
+        
+        # Remove the variable from the list
+        del self.variables[self.current_var_index]
+        
+        # Adjust current index and load appropriate variable
+        if not self.variables:
+            # No variables left
+            self.current_var_index = -1
+            self.clear_form()
+        elif self.current_var_index >= len(self.variables):
+            # We deleted the last variable, go to the new last one
+            self.current_var_index = len(self.variables) - 1
+            self.load_variable(self.current_var_index)
+        else:
+            # Load the variable that's now at the current index
+            self.load_variable(self.current_var_index)
+        
+        self.update_nav_buttons()
+        messagebox.showinfo("Success", f"Variable '{var_name}' has been deleted.")
+
     def update_nav_buttons(self):
         self.prev_btn.configure(state="normal" if self.current_var_index > 0 else "disabled")
         self.next_btn.configure(state="normal" if self.current_var_index < len(self.variables) - 1 else "disabled")
+        self.delete_var_btn.configure(state="normal" if self.variables and 0 <= self.current_var_index < len(self.variables) else "disabled")
 
     # === Generate SAS code ===
 
