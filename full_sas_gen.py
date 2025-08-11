@@ -179,7 +179,7 @@ SURVEYS = {
 
 class SASGeneratorApp(tb.Window):
     def __init__(self):
-        super().__init__(title="SAS Code Generator", size=(900, 700))
+        super().__init__(title="SAS Code Generator", size=(900, 900))
 
         self.variables = []  # List to store multiple variables info
         self.current_var_index = -1
