@@ -457,20 +457,33 @@ class SASGeneratorApp(tb.Window):
                 return
             self.load_variable(self.current_var_index + 1)
 
-    def add_variable(self):
-        if not self.save_current_variable():
-            return
-        # Clear form for new variable input
-        self.current_var_index = len(self.variables)
-        self.clear_form()
+def add_variable(self):
+    if not self.save_current_variable():
+        return
+    # Clear form for new variable input
+    self.current_var_index = len(self.variables)
+    self.clear_form()
+    # Enable delete if at least one variable already exists
+    if self.variables:
+        self.delete_var_btn.configure(state="normal")
 
-   def delete_variable(self):
+
+def update_nav_buttons(self):
+    self.prev_btn.configure(state="normal" if self.current_var_index > 0 else "disabled")
+    self.next_btn.configure(state="normal" if self.current_var_index < len(self.variables) - 1 else "disabled")
+    # Allow delete if we have any saved variables OR we're currently editing a variable
+    self.delete_var_btn.configure(
+        state="normal" if self.variables or self.current_var_index >= 0 else "disabled"
+    )
+
+
+def delete_variable(self):
     # Case 1: No saved variables yet — just clear the form
     if not self.variables:
         if (
-            self.var_code_entry.get().strip() or
-            self.var_name_entry.get().strip() or
-            self.description_entry.get().strip()
+            self.var_code_entry.get().strip()
+            or self.var_name_entry.get().strip()
+            or self.description_entry.get().strip()
         ):
             result = messagebox.askyesno(
                 "Clear Form",
@@ -510,30 +523,7 @@ class SASGeneratorApp(tb.Window):
 
     self.update_nav_buttons()
     messagebox.showinfo("Success", f"Variable '{var_name}' has been deleted.")
-        
-        # Remove the variable from the list
-        del self.variables[self.current_var_index]
-        
-        # Adjust current index and load appropriate variable
-        if not self.variables:
-            # No variables left
-            self.current_var_index = -1
-            self.clear_form()
-        elif self.current_var_index >= len(self.variables):
-            # We deleted the last variable, go to the new last one
-            self.current_var_index = len(self.variables) - 1
-            self.load_variable(self.current_var_index)
-        else:
-            # Load the variable that's now at the current index
-            self.load_variable(self.current_var_index)
-        
-        self.update_nav_buttons()
-        messagebox.showinfo("Success", f"Variable '{var_name}' has been deleted.")
 
-    def update_nav_buttons(self):
-        self.prev_btn.configure(state="normal" if self.current_var_index > 0 else "disabled")
-        self.next_btn.configure(state="normal" if self.current_var_index < len(self.variables) - 1 else "disabled")
-        self.delete_var_btn.configure(state="normal" if self.variables and 0 <= self.current_var_index < len(self.variables) else "disabled")
 
     # === Generate SAS code ===
 
