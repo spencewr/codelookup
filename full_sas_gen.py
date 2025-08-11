@@ -182,7 +182,7 @@ class SASGeneratorApp(tb.Window):
         super().__init__(title="SAS Code Generator", size=(900, 700))
 
         self.variables = []  # List to store multiple variables info
-        self.current_var_index = 0
+        self.current_var_index = -1
 
         # === Dataset selection ===
         tb.Label(self, text="Select Survey Dataset:").pack(pady=(15, 3), anchor="w", padx=15)
