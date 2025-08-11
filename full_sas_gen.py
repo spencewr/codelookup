@@ -3,6 +3,11 @@ from ttkbootstrap.constants import *
 import tkinter as tk
 from tkinter import messagebox
 
+# ======================
+# Your ORIGINAL SURVEYS, TOPICS, SUBTOPICS
+# (copied from your first message exactly)
+# ======================
+
 SAS_TEMPLATE = """
 /* {var_value} */
 data new_varxx;
@@ -43,17 +48,152 @@ output;
 run;
 """
 
-# Your TOPICS and SURVEYS dictionaries here (unchanged)...
+TOPICS = {
+    "Children and Youth": {
+        "id": 5,
+        "subtopics": {
+            "Child Development and Disabilities": 26,
+            "Day Care and School": 34,
+            "Drug and Alcohol Use": 10,
+            "Health Care Use": 17,
+            "Health Insurance": 15,
+            "Household and Neighborhood": 16,
+            "Health Status": 18,
+            "Mental Health": 3,
+            "Nutrition": 23,
+            "Physical Activity": 35,
+            "Physical Health Conditions": 12,
+            "Population Characteristics": 11,
+            "Safety": 4,
+            "Sleep": 33,
+            "Sexual Behavior": 30,
+            "Smoking": 7,
+            "Violence": 1,
+        },
+    },
+    "Healthy Living": {
+        "id": 4,
+        "subtopics": {
+            "Vaccinations": 29,
+            "Drug and Alcohol Use": 10,
+            "Health Status": 18,
+            "Nutrition": 23,
+            "Physical Activity": 35,
+            "Safety": 4,
+            "Screening": 19,
+            "Sexual Behavior": 30,
+        },
+    },
+    "Sleep": {"id": 33, "subtopics": {}},
+    "Smoking": {"id": 7, "subtopics": {}},
+    "Vaccinations": {"id": 29, "subtopics": {}},
+    "Violence": {"id": 1, "subtopics": {}},
+    "Community Characteristics": {
+        "id": 6,
+        "subtopics": {
+            "Day Care and School": 34,
+            "Economic Factors": 31,
+            "Population Characteristics": 11,
+            "Social Factors": 13,
+        },
+    },
+    "Living and Environmental Conditions": {
+        "id": 7,
+        "subtopics": {
+            "Built Environment": 28,
+            "Housing": 14,
+        },
+    },
+    "Safety": {"id": 4, "subtopics": {}},
+    "Social Factors": {"id": 13, "subtopics": {}},
+    "Mental Health": {
+        "id": 3,
+        "subtopics": {
+            "Drug and Alcohol Use": 10,
+            "Mental Health Conditions": 20,
+            "Mental Health Counseling and Treatment": 27,
+        },
+    },
+    "Diseases and Conditions": {
+        "id": 1,
+        "subtopics": {
+            "Child Development and Disabilities": 26,
+            "Chronic Diseases": 24,
+            "Dental Health": 21,
+            "Foodborne or Waterborne Infections": 43,
+            "HIV-AIDS": 8,
+            "Hearing and Vision Health": 36,
+            "Hepatitis Infections": 48,
+            "Invasive Bacterial Infections": 45,
+            "Mosquitoborne Infections": 37,
+            "Other and Rare Diseases": 46,
+            "Person-to-Person Infections": 44,
+            "Respiratory Infections": 41,
+            "Sexually Transmitted Infections": 5,
+            "Syndromic Surveillance": 39,
+            "Tickborne Infections": 42,
+            "Tuberculosis": 53,
+            "Vaccine-Preventable Diseases": 47,
+            "Zoonotic Infections": 40,
+        },
+    },
+    "Health Care Access and Use": {
+        "id": 2,
+        "subtopics": {
+            "Health Care Use": 17,
+            "Health Insurance": 15,
+            "Mental Health Counseling and Treatment": 27,
+            "Screening": 19,
+            "Vaccinations": 29,
+        },
+    },
+    "Birth and Death": {
+        "id": 8,
+        "subtopics": {
+            "Birth": 38,
+            "Infant Mortality": 51,
+            "Leading Cause of Death": 52,
+            "Mortality and Premature Mortality": 49,
+        },
+    },
+}
+
+SURVEYS = {
+    "YRBS": {
+        "full_name": "NYC Youth Risk Behavior Survey",
+        "population": "Youth",
+        "tag_suffix": "YRBS",
+    },
+    "CHS": {
+        "full_name": "Community Health Survey",
+        "population": "Adult",
+        "tag_suffix": "CHS",
+    },
+    "HANES": {
+        "full_name": "NYC Health and Nutrition Examination Survey",
+        "population": "Adult",
+        "tag_suffix": "HANES",
+    },
+    "CCHS": {
+        "full_name": "NYC Child Health Data",
+        "population": "Youth",
+        "tag_suffix": "CCHS",
+    },
+}
+
 
 class SASGeneratorApp(tb.Window):
     def __init__(self):
         super().__init__(title="SAS Code Generator", size=(900, 700))
 
-        self.current_survey_key = None
-        self.variables_data = []  # list of dicts for each variable
-        self.current_index = 0
+        self.variables = []  # List to store multiple variables info
+        self.current_var_index = 0
 
-        # Dataset selection
+        # Header/Footer placeholders
+        self.program_header = "/* ===== PROGRAM HEADER (INSERT YOUR SAS HEADER HERE) ===== */"
+        self.program_footer = "/* ===== PROGRAM FOOTER (INSERT YOUR SAS FOOTER HERE) ===== */"
+
+        # === Dataset selection ===
         tb.Label(self, text="Select Survey Dataset:").pack(pady=(15, 3), anchor="w", padx=15)
         self.dataset_var = tb.StringVar()
         self.dataset_dropdown = tb.Combobox(self, textvariable=self.dataset_var, state="readonly")
@@ -76,7 +216,7 @@ class SASGeneratorApp(tb.Window):
         self.description_entry = tb.Entry(self)
         self.description_entry.pack(fill="x", padx=15)
 
-        # Variable Type
+        # Variable Type (Indicator/Demographic)
         tb.Label(self, text="Variable Type:").pack(pady=(15, 3), anchor="w", padx=15)
         self.var_type_var = tb.StringVar()
         self.var_type_dropdown = tb.Combobox(
@@ -100,36 +240,41 @@ class SASGeneratorApp(tb.Window):
         self.subtopic_dropdown = tb.Combobox(self, textvariable=self.subtopic_var, state="readonly")
         self.subtopic_dropdown.pack(fill="x", padx=15)
 
-        # Number of levels dropdown
+        # Number of Levels dropdown (2-6)
         tb.Label(self, text="Number of Levels:").pack(pady=(15, 3), anchor="w", padx=15)
         self.levels_var = tb.StringVar()
-        self.levels_dropdown = tb.Combobox(
-            self, textvariable=self.levels_var, values=[str(i) for i in range(2, 7)], state="readonly"
-        )
+        self.levels_dropdown = tb.Combobox(self, textvariable=self.levels_var, state="readonly")
+        self.levels_dropdown["values"] = [str(i) for i in range(2, 7)]
         self.levels_dropdown.pack(fill="x", padx=15)
-        self.levels_dropdown.bind("<<ComboboxSelected>>", self.populate_level_entries)
+        self.levels_dropdown.bind("<<ComboboxSelected>>", self.on_levels_change)
 
-        # Frame for dynamic level entries
-        self.levels_frame = tb.Frame(self)
-        self.levels_frame.pack(fill="x", padx=15, pady=5)
+        # Frame to hold level name entry fields
+        self.level_names_frame = tb.Frame(self)
+        self.level_names_frame.pack(fill="x", padx=15, pady=(5, 15))
+        self.level_name_entries = []
 
-        # Navigation + Buttons Frame
-        btn_frame = tb.Frame(self)
-        btn_frame.pack(pady=10, fill="x")
+        # Navigation Frame with Previous / Next variable and Add Variable buttons
+        nav_frame = tb.Frame(self)
+        nav_frame.pack(fill="x", padx=15, pady=(0, 10))
 
-        self.prev_btn = tb.Button(btn_frame, text="← Previous", command=self.prev_variable, bootstyle="secondary")
-        self.prev_btn.pack(side="left", padx=5)
+        self.prev_btn = tb.Button(nav_frame, text="← Previous Variable", command=self.prev_variable)
+        self.prev_btn.pack(side="left")
 
-        self.add_btn = tb.Button(btn_frame, text="Add Another Variable", command=self.add_variable, bootstyle="primary")
-        self.add_btn.pack(side="left", padx=5)
+        self.next_btn = tb.Button(nav_frame, text="Next Variable →", command=self.next_variable)
+        self.next_btn.pack(side="left", padx=10)
 
-        self.next_btn = tb.Button(btn_frame, text="Next →", command=self.next_variable, bootstyle="secondary")
-        self.next_btn.pack(side="left", padx=5)
+        self.add_var_btn = tb.Button(
+            nav_frame, text="Add Another Variable", bootstyle="primary", command=self.add_variable
+        )
+        self.add_var_btn.pack(side="right")
 
-        self.generate_btn = tb.Button(btn_frame, text="Generate SAS Code", command=self.generate_all_sas, bootstyle="success")
-        self.generate_btn.pack(side="right", padx=5)
+        # Generate SAS Code button (green)
+        self.generate_btn = tb.Button(
+            self, text="Generate SAS Code", bootstyle="success", command=self.generate_sas_code
+        )
+        self.generate_btn.pack(pady=(0, 15))
 
-        # Footer
+        # Footer label
         self.footer_label = tb.Label(
             self,
             text="Made by Spencer Riddell, August 2025",
@@ -143,15 +288,18 @@ class SASGeneratorApp(tb.Window):
         self.var_type_dropdown.current(0)
         self.on_survey_change()
         self.on_vartype_change()
-        self.new_variable_form()
+        self.load_variable(0)
+
+    # === Event Handlers ===
 
     def on_survey_change(self, event=None):
-        self.current_survey_key = self.dataset_var.get()
+        # Clear topic/subtopic because they may depend on survey
         self.topic_var.set("")
         self.subtopic_var.set("")
 
     def on_vartype_change(self, event=None):
-        if self.var_type_var.get() == "Demographic":
+        vt = self.var_type_var.get()
+        if vt == "Demographic":
             self.topic_dropdown.configure(state="disabled")
             self.subtopic_dropdown.configure(state="disabled")
             self.topic_var.set("")
@@ -162,130 +310,200 @@ class SASGeneratorApp(tb.Window):
 
     def on_topic_change(self, event=None):
         topic = self.topic_var.get()
-        subtopics = sorted(TOPICS.get(topic, {}).get("subtopics", {}).keys())
+        if not topic:
+            self.subtopic_dropdown["values"] = []
+            self.subtopic_var.set("")
+            return
+        subtopics = sorted(TOPICS[topic]["subtopics"].keys())
         self.subtopic_dropdown["values"] = subtopics
         self.subtopic_var.set("")
 
-    def populate_level_entries(self, event=None):
-        for widget in self.levels_frame.winfo_children():
+    def on_levels_change(self, event=None):
+        # Clear previous entries
+        for widget in self.level_names_frame.winfo_children():
             widget.destroy()
+        self.level_name_entries.clear()
+
         try:
-            count = int(self.levels_var.get())
-        except:
+            n_levels = int(self.levels_var.get())
+        except Exception:
             return
-        self.level_entries = []
-        for i in range(1, count + 1):
-            lbl = tb.Label(self.levels_frame, text=f"Variable Value #{i}:")
-            lbl.pack(anchor="w")
-            entry = tb.Entry(self.levels_frame)
-            entry.pack(fill="x", pady=2)
-            self.level_entries.append(entry)
+
+        for i in range(n_levels):
+            label = tb.Label(self.level_names_frame, text=f"Level {i+1} Name:")
+            label.grid(row=i, column=0, sticky="w", pady=2, padx=5)
+            entry = tb.Entry(self.level_names_frame)
+            entry.grid(row=i, column=1, sticky="ew", pady=2, padx=5)
+            self.level_name_entries.append(entry)
+
+        self.level_names_frame.columnconfigure(1, weight=1)
+
+    # === Variable Data Management ===
 
     def save_current_variable(self):
-        """Save current form data to variables_data"""
-        if len(self.variables_data) <= self.current_index:
-            self.variables_data.append({})
-        var_data = {
-            "dataset": self.current_survey_key,
+        # Validate required fields first
+        if not self.dataset_var.get():
+            messagebox.showerror("Error", "Please select a Survey Dataset.")
+            return False
+        if not self.var_code_entry.get().strip():
+            messagebox.showerror("Error", "Please enter Variable Code.")
+            return False
+        if not self.var_name_entry.get().strip():
+            messagebox.showerror("Error", "Please enter Variable Name.")
+            return False
+        if not self.description_entry.get().strip():
+            messagebox.showerror("Error", "Please enter Description.")
+            return False
+        if not self.var_type_var.get():
+            messagebox.showerror("Error", "Please select Variable Type.")
+            return False
+        if self.var_type_var.get() == "Indicator":
+            if not self.topic_var.get() or not self.subtopic_var.get():
+                messagebox.showerror("Error", "Please select Topic and Sub-Topic for Indicators.")
+                return False
+        if not self.levels_var.get():
+            messagebox.showerror("Error", "Please select Number of Levels.")
+            return False
+        # Check level names
+        for idx, entry in enumerate(self.level_name_entries, start=1):
+            if not entry.get().strip():
+                messagebox.showerror("Error", f"Please enter a name for Level {idx}.")
+                return False
+
+        # Save data
+        data = {
+            "dataset": self.dataset_var.get(),
+            "dataset_name": SURVEYS[self.dataset_var.get()]["full_name"],
+            "population": SURVEYS[self.dataset_var.get()]["population"],
+            "tag_suffix": SURVEYS[self.dataset_var.get()]["tag_suffix"],
             "var_code": self.var_code_entry.get().strip(),
             "var_name": self.var_name_entry.get().strip(),
             "description": self.description_entry.get().strip(),
             "var_type": self.var_type_var.get(),
-            "topic": self.topic_var.get(),
-            "subtopic": self.subtopic_var.get(),
-            "levels": [e.get().strip() for e in getattr(self, "level_entries", [])],
+            "topic": self.topic_var.get() if self.var_type_var.get() == "Indicator" else "",
+            "sub_topic": self.subtopic_var.get() if self.var_type_var.get() == "Indicator" else "",
+            "topic_id": TOPICS[self.topic_var.get()]["id"] if self.topic_var.get() in TOPICS else 0,
+            "subtopic_id": 0,
+            "levels": [e.get().strip() for e in self.level_name_entries],
         }
-        self.variables_data[self.current_index] = var_data
+        # Subtopic id
+        if data["topic"] and data["sub_topic"]:
+            data["subtopic_id"] = TOPICS[data["topic"]]["subtopics"].get(data["sub_topic"], 0)
 
-    def load_variable_form(self, index):
-        """Load data from variables_data[index] into form"""
-        var_data = self.variables_data[index]
-        self.dataset_var.set(var_data.get("dataset", ""))
-        self.on_survey_change()
-        self.var_code_entry.delete(0, "end")
-        self.var_code_entry.insert(0, var_data.get("var_code", ""))
-        self.var_name_entry.delete(0, "end")
-        self.var_name_entry.insert(0, var_data.get("var_name", ""))
-        self.description_entry.delete(0, "end")
-        self.description_entry.insert(0, var_data.get("description", ""))
-        self.var_type_var.set(var_data.get("var_type", "Indicator"))
-        self.on_vartype_change()
-        self.topic_var.set(var_data.get("topic", ""))
-        self.on_topic_change()
-        self.subtopic_var.set(var_data.get("subtopic", ""))
-        self.levels_var.set(str(len(var_data.get("levels", []))) if var_data.get("levels") else "")
-        self.populate_level_entries()
-        for entry, value in zip(getattr(self, "level_entries", []), var_data.get("levels", [])):
-            entry.delete(0, "end")
-            entry.insert(0, value)
+        # Store or update current variable
+        if self.current_var_index < len(self.variables):
+            self.variables[self.current_var_index] = data
+        else:
+            self.variables.append(data)
+        return True
 
-    def new_variable_form(self):
-        self.var_code_entry.delete(0, "end")
-        self.var_name_entry.delete(0, "end")
-        self.description_entry.delete(0, "end")
-        self.var_type_var.set("Indicator")
-        self.on_vartype_change()
-        self.topic_var.set("")
-        self.subtopic_var.set("")
-        self.levels_var.set("")
-        self.populate_level_entries()
+    def load_variable(self, index):
+        if index >= len(self.variables):
+            # Clear all fields for new variable
+            self.dataset_var.set("")
+            self.var_code_entry.delete(0, tk.END)
+            self.var_name_entry.delete(0, tk.END)
+            self.description_entry.delete(0, tk.END)
+            self.var_type_var.set("")
+            self.topic_var.set("")
+            self.subtopic_var.set("")
+            self.levels_var.set("")
+            self.on_vartype_change()
+            self.on_topic_change()
+            # Clear level name entries
+            for w in self.level_names_frame.winfo_children():
+                w.destroy()
+            self.level_name_entries.clear()
+        else:
+            data = self.variables[index]
+            self.dataset_var.set(data["dataset"])
+            self.var_code_entry.delete(0, tk.END)
+            self.var_code_entry.insert(0, data["var_code"])
+            self.var_name_entry.delete(0, tk.END)
+            self.var_name_entry.insert(0, data["var_name"])
+            self.description_entry.delete(0, tk.END)
+            self.description_entry.insert(0, data["description"])
+            self.var_type_var.set(data["var_type"])
+            self.on_vartype_change()
+            self.topic_var.set(data["topic"])
+            self.on_topic_change()
+            self.subtopic_var.set(data["sub_topic"])
+            self.levels_var.set(str(len(data["levels"])))
+            self.on_levels_change()
+            # Populate level names
+            for entry, val in zip(self.level_name_entries, data["levels"]):
+                entry.delete(0, tk.END)
+                entry.insert(0, val)
 
-    def add_variable(self):
-        self.save_current_variable()
-        self.current_index = len(self.variables_data)
-        self.new_variable_form()
+        # Update nav buttons states
+        self.prev_btn.configure(state=NORMAL if index > 0 else DISABLED)
+        self.next_btn.configure(state=NORMAL if index < len(self.variables) - 1 else DISABLED)
 
     def prev_variable(self):
-        if self.current_index > 0:
-            self.save_current_variable()
-            self.current_index -= 1
-            self.load_variable_form(self.current_index)
+        if self.save_current_variable():
+            if self.current_var_index > 0:
+                self.current_var_index -= 1
+                self.load_variable(self.current_var_index)
 
     def next_variable(self):
-        if self.current_index < len(self.variables_data) - 1:
-            self.save_current_variable()
-            self.current_index += 1
-            self.load_variable_form(self.current_index)
+        if self.save_current_variable():
+            if self.current_var_index < len(self.variables) - 1:
+                self.current_var_index += 1
+                self.load_variable(self.current_var_index)
 
-    def generate_all_sas(self):
-        self.save_current_variable()
-        sas_code_str = ""
-        for var in self.variables_data:
-            if not var.get("var_code") or not var.get("var_name") or not var.get("description") or not var.get("levels"):
-                continue
-            survey_info = SURVEYS.get(var["dataset"], {})
-            topic_id = TOPICS[var["topic"]]["id"] if var["topic"] in TOPICS else 0
-            subtopic_id = (
-                TOPICS[var["topic"]]["subtopics"].get(var["subtopic"], 0)
-                if var["var_type"] == "Indicator" else 0
-            )
-            for idx, val in enumerate(var["levels"], 1):
-                sas_code_str += SAS_TEMPLATE.format(
+    def add_variable(self):
+        if self.save_current_variable():
+            self.current_var_index = len(self.variables)
+            self.load_variable(self.current_var_index)
+
+    # === SAS Code Generation ===
+
+   def generate_sas_code(self):
+    if not self.save_current_variable():
+        return
+    if not self.variables:
+        messagebox.showerror("Error", "No variables to generate SAS code.")
+        return
+
+    sas_code_parts = []
+
+    for var_data in self.variables:
+        for idx, val in enumerate(var_data["levels"], start=1):
+            sas_code_parts.append(
+                SAS_TEMPLATE.format(
                     varvalid=idx,
-                    topic_id=topic_id,
-                    subtopic_id=subtopic_id,
-                    dataset=var["dataset"],
-                    dataset_name=survey_info.get("full_name", ""),
-                    var_code=var["var_code"],
+                    topic_id=var_data["topic_id"],
+                    subtopic_id=var_data["subtopic_id"],
+                    dataset=var_data["dataset"],
+                    dataset_name=var_data["dataset_name"],
+                    var_code=var_data["var_code"],
                     var_value=val,
-                    var_type=var["var_type"],
-                    var_name=var["var_name"],
-                    description=var["description"],
-                    topic=var["topic"] if var["var_type"] == "Indicator" else "",
-                    sub_topic=var["subtopic"] if var["var_type"] == "Indicator" else "",
-                    population=survey_info.get("population", ""),
-                    tag_suffix=survey_info.get("tag_suffix", ""),
-                ) + "\n\n"
-        self.show_output_popup(sas_code_str)
+                    var_type=var_data["var_type"],
+                    var_name=var_data["var_name"],
+                    description=var_data["description"],
+                    topic=var_data["topic"],
+                    sub_topic=var_data["sub_topic"],
+                    population=var_data["population"],
+                    tag_suffix=var_data["tag_suffix"],
+                )
+            )
+            sas_code_parts.append("")  # blank line between entries
+
+    full_code = "\n".join(sas_code_parts)
+    self.show_output_popup(full_code)
+
+    # === Popup for SAS output ===
 
     def show_output_popup(self, sas_code):
         popup = tk.Toplevel(self)
         popup.title("Generated SAS Code")
-        popup.geometry("800x600")
+        popup.geometry("850x650")
+
         text = tk.Text(popup, wrap="word", font=("Consolas", 11))
         text.insert("1.0", sas_code)
-        text.configure(state="disabled")
+        text.configure(state="disabled")  # read-only
         text.pack(side="left", fill="both", expand=True)
+
         scrollbar = tk.Scrollbar(popup, command=text.yview)
         scrollbar.pack(side="right", fill="y")
         text.config(yscrollcommand=scrollbar.set)
