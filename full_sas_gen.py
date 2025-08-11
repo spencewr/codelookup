@@ -184,6 +184,10 @@ class SASGeneratorApp(tb.Window):
         self.variables = []  # List to store multiple variables info
         self.current_var_index = -1
 
+        self.create_widgets()
+        self.initialize_defaults()
+
+    def create_widgets(self):
         # === Dataset selection ===
         tb.Label(self, text="Select Survey Dataset:").pack(pady=(15, 3), anchor="w", padx=15)
         self.dataset_var = tb.StringVar()
@@ -279,6 +283,7 @@ class SASGeneratorApp(tb.Window):
         )
         self.footer_label.pack(side="bottom", pady=5)
 
+    def initialize_defaults(self):
         # Initialize defaults
         self.dataset_dropdown.current(0)
         self.var_type_dropdown.current(0)
