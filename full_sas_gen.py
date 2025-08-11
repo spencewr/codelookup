@@ -330,61 +330,61 @@ class SASGeneratorApp(tb.Window):
     # === Variable Data Management ===
 
     def save_current_variable(self):
-    if not self.dataset_var.get():
-        messagebox.showerror("Error", "Please select a Survey Dataset.")
-        return False
-    if not self.var_code_entry.get().strip():
-        messagebox.showerror("Error", "Please enter Variable Code.")
-        return False
-    if not self.var_name_entry.get().strip():
-        messagebox.showerror("Error", "Please enter Variable Name.")
-        return False
-    if not self.description_entry.get().strip():
-        messagebox.showerror("Error", "Please enter Description.")
-        return False
-    if not self.var_type_var.get():
-        messagebox.showerror("Error", "Please select Variable Type.")
-        return False
-    if self.var_type_var.get() == "Indicator":
-        if not self.topic_var.get() or not self.subtopic_var.get():
-            messagebox.showerror("Error", "Please select Topic and Sub-Topic for Indicators.")
+        if not self.dataset_var.get():
+            messagebox.showerror("Error", "Please select a Survey Dataset.")
             return False
-    if not self.levels_var.get():
-        messagebox.showerror("Error", "Please select Number of Levels.")
-        return False
-    for idx, entry in enumerate(self.level_name_entries, start=1):
-        if not entry.get().strip():
-            messagebox.showerror("Error", f"Please enter a name for Level {idx}.")
+        if not self.var_code_entry.get().strip():
+            messagebox.showerror("Error", "Please enter Variable Code.")
             return False
+        if not self.var_name_entry.get().strip():
+            messagebox.showerror("Error", "Please enter Variable Name.")
+            return False
+        if not self.description_entry.get().strip():
+            messagebox.showerror("Error", "Please enter Description.")
+            return False
+        if not self.var_type_var.get():
+            messagebox.showerror("Error", "Please select Variable Type.")
+            return False
+        if self.var_type_var.get() == "Indicator":
+            if not self.topic_var.get() or not self.subtopic_var.get():
+                messagebox.showerror("Error", "Please select Topic and Sub-Topic for Indicators.")
+                return False
+        if not self.levels_var.get():
+            messagebox.showerror("Error", "Please select Number of Levels.")
+            return False
+        for idx, entry in enumerate(self.level_name_entries, start=1):
+            if not entry.get().strip():
+                messagebox.showerror("Error", f"Please enter a name for Level {idx}.")
+                return False
 
-    data = {
-        "dataset": self.dataset_var.get(),
-        "dataset_name": SURVEYS[self.dataset_var.get()]["full_name"],
-        "population": SURVEYS[self.dataset_var.get()]["population"],
-        "tag_suffix": SURVEYS[self.dataset_var.get()]["tag_suffix"],
-        "var_code": self.var_code_entry.get().strip(),
-        "var_name": self.var_name_entry.get().strip(),
-        "description": self.description_entry.get().strip(),
-        "var_type": self.var_type_var.get(),
-        "topic": self.topic_var.get() if self.var_type_var.get() == "Indicator" else "",
-        "sub_topic": self.subtopic_var.get() if self.var_type_var.get() == "Indicator" else "",
-        "topic_id": TOPICS[self.topic_var.get()]["id"] if self.topic_var.get() in TOPICS else 0,
-        "subtopic_id": (
-            TOPICS[self.topic_var.get()]["subtopics"][self.subtopic_var.get()]
-            if self.var_type_var.get() == "Indicator"
-            and self.subtopic_var.get() in TOPICS.get(self.topic_var.get(), {}).get("subtopics", {})
-            else 0
-        ),
-        "levels": [entry.get().strip() for entry in self.level_name_entries],
-    }
+        data = {
+            "dataset": self.dataset_var.get(),
+            "dataset_name": SURVEYS[self.dataset_var.get()]["full_name"],
+            "population": SURVEYS[self.dataset_var.get()]["population"],
+            "tag_suffix": SURVEYS[self.dataset_var.get()]["tag_suffix"],
+            "var_code": self.var_code_entry.get().strip(),
+            "var_name": self.var_name_entry.get().strip(),
+            "description": self.description_entry.get().strip(),
+            "var_type": self.var_type_var.get(),
+            "topic": self.topic_var.get() if self.var_type_var.get() == "Indicator" else "",
+            "sub_topic": self.subtopic_var.get() if self.var_type_var.get() == "Indicator" else "",
+            "topic_id": TOPICS[self.topic_var.get()]["id"] if self.topic_var.get() in TOPICS else 0,
+            "subtopic_id": (
+                TOPICS[self.topic_var.get()]["subtopics"][self.subtopic_var.get()]
+                if self.var_type_var.get() == "Indicator"
+                and self.subtopic_var.get() in TOPICS.get(self.topic_var.get(), {}).get("subtopics", {})
+                else 0
+            ),
+            "levels": [entry.get().strip() for entry in self.level_name_entries],
+        }
 
-    if 0 <= self.current_var_index < len(self.variables):
-        self.variables[self.current_var_index] = data
-    else:
-        self.variables.append(data)
-        self.current_var_index = len(self.variables) - 1
+        if 0 <= self.current_var_index < len(self.variables):
+            self.variables[self.current_var_index] = data
+        else:
+            self.variables.append(data)
+            self.current_var_index = len(self.variables) - 1
 
-    return True
+        return True
 
     def load_variable(self, index):
         if not self.variables or index < 0 or index >= len(self.variables):
